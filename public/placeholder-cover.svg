@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="TheCryptoDesk">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#0a1530"/>
+      <stop offset="100%" stop-color="#04050a"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#g)"/>
+  <text x="600" y="345" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="800" letter-spacing="4" text-anchor="middle" filter="url(#glow)">
+    <tspan fill="#22e0ff">The</tspan><tspan fill="#b06bff">CryptoDesk</tspan>
+  </text>
+  <text x="600" y="400" font-family="monospace" font-size="20" letter-spacing="8" fill="#7f8db0" text-anchor="middle">◆ SIGNAL ◆</text>
+</svg>

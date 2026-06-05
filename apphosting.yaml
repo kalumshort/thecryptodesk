@@ -1,0 +1,26 @@
+# Firebase App Hosting configuration for the Next.js frontend.
+# Docs: https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Keep at least one warm instance for fast SSR / good SEO crawl response.
+  minInstances: 0
+  maxInstances: 2
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  # Public site URL — used to build canonical URLs, the sitemap and robots.txt.
+  # Change this to your real domain once deployed.
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: https://thecryptodesk.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Example of how to wire a Secret Manager secret into the runtime if you
+  # ever need one (not required: Vertex AI + Admin SDK use the runtime
+  # service account via Application Default Credentials).
+  #
+  # - variable: SOME_API_KEY
+  #   secret: some-api-key

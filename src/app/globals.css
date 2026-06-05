@@ -1,26 +1,181 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Cosmic Bio-Digitalism palette ─────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Raw biological / digital pigments */
+  --void: #04050a; /* deep void black */
+  --void-panel: #0a0d17; /* membrane panel */
+  --cyan: #22e0ff; /* cyan bioluminescence */
+  --violet: #b06bff; /* violet spores */
+  --acid: #b6ff3c; /* acid green */
+  --magenta: #ff3ca6; /* magenta warnings */
+  --amber: #ffb43c; /* amber yields */
+
+  /* shadcn semantic tokens mapped onto the palette */
+  --background: var(--void);
+  --foreground: #d7e6ff;
+  --card: var(--void-panel);
+  --card-foreground: #d7e6ff;
+  --popover: #070912;
+  --popover-foreground: #d7e6ff;
+  --primary: var(--cyan);
+  --primary-foreground: #04050a;
+  --secondary: var(--violet);
+  --secondary-foreground: #04050a;
+  --muted: #0f1320;
+  --muted-foreground: #7f8db0;
+  --accent: var(--acid);
+  --accent-foreground: #04050a;
+  --destructive: var(--magenta);
+  --border: color-mix(in oklch, var(--cyan) 16%, transparent);
+  --input: color-mix(in oklch, var(--cyan) 22%, transparent);
+  --ring: var(--cyan);
+
+  --radius: 0.3rem;
+
+  --font-display: var(--font-orbitron);
+}
+
+/* Force the void aesthetic regardless of OS theme. */
+.dark {
+  --background: var(--void);
+  --foreground: #d7e6ff;
+  --card: var(--void-panel);
+  --card-foreground: #d7e6ff;
+  --popover: #070912;
+  --popover-foreground: #d7e6ff;
+  --primary: var(--cyan);
+  --primary-foreground: #04050a;
+  --secondary: var(--violet);
+  --secondary-foreground: #04050a;
+  --muted: #0f1320;
+  --muted-foreground: #7f8db0;
+  --accent: var(--acid);
+  --accent-foreground: #04050a;
+  --destructive: var(--magenta);
+  --border: color-mix(in oklch, var(--cyan) 16%, transparent);
+  --input: color-mix(in oklch, var(--cyan) 22%, transparent);
+  --ring: var(--cyan);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Direct access to raw pigments: text-cyan, bg-acid, etc. */
+  --color-void: var(--void);
+  --color-cyan: var(--cyan);
+  --color-violet: var(--violet);
+  --color-acid: var(--acid);
+  --color-magenta: var(--magenta);
+  --color-amber: var(--amber);
+
+  --font-sans: var(--font-space-mono);
+  --font-mono: var(--font-space-mono);
+  --font-display: var(--font-orbitron);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-space-mono), ui-monospace, monospace;
+    background-image:
+      radial-gradient(
+        circle at 15% 0%,
+        color-mix(in oklch, var(--violet) 14%, transparent),
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 85% 100%,
+        color-mix(in oklch, var(--cyan) 10%, transparent),
+        transparent 50%
+      );
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-orbitron), var(--font-space-mono), sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  /* Hide the OS cursor on precise pointers — the diamond cursor takes over. */
+  @media (hover: hover) and (pointer: fine) {
+    * {
+      cursor: none !important;
+    }
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--cyan) 35%, transparent);
+    color: #ffffff;
+  }
+
+  /* Bioluminescent scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--void);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--cyan) 40%, var(--void));
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--cyan);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Neon text/box glows */
+  .text-glow-cyan {
+    text-shadow: 0 0 8px color-mix(in oklch, var(--cyan) 70%, transparent),
+      0 0 20px color-mix(in oklch, var(--cyan) 40%, transparent);
+  }
+  .text-glow-violet {
+    text-shadow: 0 0 8px color-mix(in oklch, var(--violet) 70%, transparent),
+      0 0 20px color-mix(in oklch, var(--violet) 40%, transparent);
+  }
+  .panel {
+    background: color-mix(in oklch, var(--void-panel) 80%, transparent);
+    backdrop-filter: blur(8px);
+    border: 1px solid color-mix(in oklch, var(--cyan) 18%, transparent);
+  }
+  .glow-border-cyan {
+    border: 1px solid color-mix(in oklch, var(--cyan) 35%, transparent);
+    box-shadow: 0 0 18px -6px color-mix(in oklch, var(--cyan) 60%, transparent),
+      inset 0 0 12px -8px color-mix(in oklch, var(--cyan) 70%, transparent);
+  }
 }
