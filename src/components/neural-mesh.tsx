@@ -50,7 +50,7 @@ export function NeuralMesh() {
     const LINK_DIST = 150;
 
     const seed = () => {
-      const count = Math.min(120, Math.floor((width * height) / 16000));
+      const count = Math.min(70, Math.floor((width * height) / 28000));
       nodes = Array.from({ length: count }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
@@ -81,9 +81,12 @@ export function NeuralMesh() {
 
     let raf = 0;
     let t = 0;
+    const LINK_DIST_SQ = LINK_DIST * LINK_DIST;
+    const FRAME_MS = 1000 / 30; // throttle the mesh to ~30fps
+    let last = 0;
 
-    const frame = () => {
-      t += 0.016;
+    const draw = () => {
+      t += 0.033;
       ctx.clearRect(0, 0, width, height);
 
       for (const n of nodes) {
@@ -106,8 +109,11 @@ export function NeuralMesh() {
         const a = nodes[i];
         for (let j = i + 1; j < nodes.length; j++) {
           const b = nodes[j];
-          const dist = Math.hypot(a.x - b.x, a.y - b.y);
-          if (dist < LINK_DIST) {
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < LINK_DIST_SQ) {
+            const dist = Math.sqrt(distSq);
             const c = lerpColor(nodeColor(a), nodeColor(b), 0.5);
             const alpha = (1 - dist / LINK_DIST) * 0.28;
             ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${alpha})`;
@@ -120,21 +126,32 @@ export function NeuralMesh() {
         }
       }
 
-      // pulsing nodes
+      // pulsing nodes — a faint translucent halo fakes the glow far cheaper
+      // than canvas shadowBlur (which forces an expensive per-pixel blur pass).
       for (const n of nodes) {
         const pulse = 0.5 + 0.5 * Math.sin(t * 1.6 + n.phase);
         const r = 1.2 + pulse * 1.8;
         const [cr, cg, cb] = nodeColor(n);
+
+        // soft halo
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${cr},${cg},${cb},${0.06 + pulse * 0.08})`;
+        ctx.fill();
+
+        // bright core
         ctx.beginPath();
         ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${cr},${cg},${cb},${0.5 + pulse * 0.5})`;
-        ctx.shadowBlur = 10 + pulse * 10;
-        ctx.shadowColor = `rgba(${cr},${cg},${cb},0.9)`;
         ctx.fill();
       }
-      ctx.shadowBlur = 0;
+    };
 
-      if (!reduced) raf = requestAnimationFrame(frame);
+    const frame = (now: number) => {
+      raf = requestAnimationFrame(frame);
+      if (now - last < FRAME_MS) return;
+      last = now;
+      draw();
     };
 
     const onMove = (e: MouseEvent) => {
@@ -152,7 +169,7 @@ export function NeuralMesh() {
     window.addEventListener("mouseout", onLeave);
 
     if (reduced) {
-      frame(); // single static render
+      draw(); // single static render
     } else {
       raf = requestAnimationFrame(frame);
     }

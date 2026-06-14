@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * A diamond-shaped cursor that tracks the pointer. The solid core snaps to the
- * pointer; an outer ring lags with easing for a bio-digital trail. Renders only
- * on precise pointers (desktop) — touch devices keep their native behaviour.
+ * A diamond-shaped cursor that tracks the pointer. The solid core is pixel-locked
+ * to the pointer (written directly on pointermove, so it never trails); an outer
+ * ring lags with easing for a bio-digital trail. Renders only on precise pointers
+ * (desktop) — touch devices keep their native behaviour.
  */
 export function DiamondCursor() {
   const coreRef = useRef<HTMLDivElement>(null);
@@ -20,33 +21,42 @@ export function DiamondCursor() {
 
     const target = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     const ring = { x: target.x, y: target.y };
+    let hotNow = false; // ref-like mirror of `hot`, avoids re-render churn
     let raf = 0;
 
-    function onMove(e: MouseEvent) {
+    function onMove(e: PointerEvent) {
       target.x = e.clientX;
       target.y = e.clientY;
+
+      // Pixel-lock the core to the pointer immediately — no frame delay.
+      if (coreRef.current) {
+        coreRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%) rotate(45deg)`;
+      }
+
+      // Only touch React state when the hover target type actually changes.
       const el = e.target as HTMLElement | null;
-      setHot(!!el?.closest("a, button, [role='button'], input, textarea"));
+      const over = !!el?.closest("a, button, [role='button'], input, textarea");
+      if (over !== hotNow) {
+        hotNow = over;
+        setHot(over);
+      }
     }
 
     function loop() {
-      // ring eases toward target
+      // ring eases toward target (the intentional trailing element)
       ring.x += (target.x - ring.x) * 0.18;
       ring.y += (target.y - ring.y) * 0.18;
-      if (coreRef.current) {
-        coreRef.current.style.transform = `translate(${target.x}px, ${target.y}px) translate(-50%, -50%) rotate(45deg)`;
-      }
       if (ringRef.current) {
         ringRef.current.style.transform = `translate(${ring.x}px, ${ring.y}px) translate(-50%, -50%) rotate(45deg)`;
       }
       raf = requestAnimationFrame(loop);
     }
 
-    window.addEventListener("mousemove", onMove);
+    window.addEventListener("pointermove", onMove);
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("pointermove", onMove);
     };
   }, []);
 
@@ -60,6 +70,7 @@ export function DiamondCursor() {
         aria-hidden
         className="pointer-events-none fixed left-0 top-0 z-[100] h-1.5 w-1.5 bg-cyan"
         style={{
+          willChange: "transform",
           boxShadow:
             "0 0 8px var(--cyan), 0 0 16px color-mix(in oklch, var(--cyan) 60%, transparent)",
         }}
@@ -70,6 +81,7 @@ export function DiamondCursor() {
         aria-hidden
         className="pointer-events-none fixed left-0 top-0 z-[100] border transition-[width,height,border-color] duration-150"
         style={{
+          willChange: "transform",
           width: hot ? 34 : 22,
           height: hot ? 34 : 22,
           borderColor: hot ? "var(--acid)" : "var(--cyan)",
