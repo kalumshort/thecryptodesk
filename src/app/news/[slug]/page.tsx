@@ -99,18 +99,7 @@ export default async function PostPage({ params }: Params) {
       <div className="my-8 h-px bg-gradient-to-r from-violet/60 to-transparent" />
 
       <footer className="text-xs leading-relaxed text-muted-foreground">
-        <p>
-          ◆ Source signal:{" "}
-          <a
-            href={post.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="font-bold text-cyan hover:[text-shadow:0_0_10px_var(--cyan)]"
-          >
-            {post.sourceName}
-          </a>
-          . Synthesised &amp; rewritten by AI for clarity.
-        </p>
+        <p>◆ Synthesised &amp; rewritten by AI for clarity.</p>
         {post.tags.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {post.tags.map((tag) => (

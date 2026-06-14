@@ -3,6 +3,7 @@ import { logger } from "firebase-functions/v2";
 import { FEEDS, MAX_ITEMS_PER_FEED } from "./feeds";
 import { fetchFeed, type RawArticle } from "./rss";
 import { rewriteArticle, GEMINI_MODEL, type LinkCandidate } from "./rewrite";
+import { generateCoverImage } from "./generateImage";
 
 function slugify(title: string): string {
   return title
@@ -104,6 +105,14 @@ export async function runIngest(): Promise<IngestResult> {
         const slug = await uniqueSlug(db, base, article.guidHash);
         const now = FieldValue.serverTimestamp();
 
+        // Generate our own branded cover image; "" on failure falls back to
+        // the placeholder on the frontend (never the scraped source image).
+        const coverImage = await generateCoverImage(
+          rewritten.title,
+          rewritten.category,
+          slug,
+        );
+
         // Derive the archive period (YYYY-MM) from the publish date.
         const pub = article.publishedAt;
         const year = pub.getUTCFullYear();
@@ -120,7 +129,7 @@ export async function runIngest(): Promise<IngestResult> {
           content: rewritten.content,
           category: rewritten.category,
           tags: rewritten.tags,
-          coverImage: article.imageUrl,
+          coverImage,
           sourceUrl: article.link,
           sourceName: article.feedName,
           status: "published",

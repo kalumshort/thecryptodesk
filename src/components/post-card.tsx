@@ -44,9 +44,8 @@ export function PostCard({ post }: { post: Post }) {
         <p className="line-clamp-3 text-xs leading-relaxed text-muted-foreground">
           {post.excerpt}
         </p>
-        <div className="mt-auto flex items-center justify-between pt-3 text-[10px] uppercase tracking-widest text-muted-foreground">
+        <div className="mt-auto flex items-center pt-3 text-[10px] uppercase tracking-widest text-muted-foreground">
           <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-          <span className="text-violet">{post.sourceName}</span>
         </div>
       </div>
     </article>
