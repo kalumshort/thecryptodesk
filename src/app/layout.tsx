@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Orbitron, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
+import { MarketTicker } from "@/components/market-ticker";
 import { SiteFooter } from "@/components/site-footer";
 import { NeuralMesh } from "@/components/neural-mesh";
 import { DiamondCursor } from "@/components/diamond-cursor";
@@ -57,6 +58,7 @@ export default function RootLayout({
 
         <div className="relative z-10 flex min-h-full flex-col">
           <SiteHeader />
+          <MarketTicker />
           <main className="flex-1">{children}</main>
           <SiteFooter />
         </div>

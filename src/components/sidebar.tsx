@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CATEGORY_COLOR } from "@/lib/category-style";
 import { formatDate } from "@/lib/format";
+import { FearGreedWidget } from "@/components/fear-greed-widget";
+import { TrendingWidget } from "@/components/trending-widget";
 import type { Post } from "@/types/post";
 
 /**
@@ -54,6 +56,9 @@ export function Sidebar({
           </ul>
         </div>
       ) : null}
+
+      <FearGreedWidget />
+      <TrendingWidget />
 
       {tags.length > 0 ? (
         <div className="rounded-md panel p-5">

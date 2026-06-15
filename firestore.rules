@@ -14,6 +14,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Published learn-hub guides are publicly readable. Admin-SDK writes only.
+    match /guides/{slug} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
     // Date-archive index (counts per month). Publicly readable; Admin-SDK writes.
     match /archives/{ym} {
       allow read: if true;

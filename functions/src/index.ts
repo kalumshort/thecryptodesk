@@ -5,6 +5,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { runIngest } from "./ingest";
 import { backfillArchives } from "./backfill";
+import { generateGuides } from "./generateGuides";
 
 initializeApp();
 
@@ -53,6 +54,23 @@ export const runIngestNow = onRequest(
       logger.error("Manual ingest failed", err);
       res.status(500).send("Ingest failed");
     }
+  },
+);
+
+/**
+ * Generate Learn-hub guides from the curated topic list. Idempotent — existing
+ * guides are skipped, so it's safe to run repeatedly after adding new topics.
+ *
+ * This is a Scheduler-backed function rather than a public HTTP trigger because
+ * the org policy forbids unauthenticated functions. The cron is effectively
+ * "never" (yearly); to run it on demand, open Cloud Scheduler in the console
+ * and use **Force run** on this job. Scheduler invokes it with internal OIDC
+ * auth, so no public access, secret, or local credentials are needed.
+ */
+export const scheduledGuidesGenerate = onSchedule(
+  { schedule: "0 0 1 1 *", retryCount: 0 },
+  async () => {
+    await generateGuides();
   },
 );
 

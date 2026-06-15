@@ -178,4 +178,24 @@
     box-shadow: 0 0 18px -6px color-mix(in oklch, var(--cyan) 60%, transparent),
       inset 0 0 12px -8px color-mix(in oklch, var(--cyan) 70%, transparent);
   }
+
+  /* Seamless price-ticker marquee. The track holds two identical copies, so
+     translating by exactly -50% loops with no visible seam. */
+  .animate-ticker {
+    animation: ticker-scroll 60s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-ticker {
+      animation: none;
+    }
+  }
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }

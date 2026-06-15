@@ -23,6 +23,25 @@ export function SiteHeader() {
               {CATEGORY_LABELS[cat]}
             </Link>
           ))}
+          <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-cyan/20" />
+          <Link
+            href="/market"
+            className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-cyan hover:[text-shadow:0_0_10px_var(--cyan)]"
+          >
+            Markets
+          </Link>
+          <Link
+            href="/learn"
+            className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-acid hover:[text-shadow:0_0_10px_var(--acid)]"
+          >
+            Learn
+          </Link>
+          <Link
+            href="/glossary"
+            className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-amber hover:[text-shadow:0_0_10px_var(--amber)]"
+          >
+            Glossary
+          </Link>
           <Link
             href="/archive"
             className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-violet hover:[text-shadow:0_0_10px_var(--violet)]"
