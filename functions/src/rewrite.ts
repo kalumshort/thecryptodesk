@@ -14,6 +14,7 @@ export interface RewrittenPost {
   metaTitle: string;
   metaDescription: string;
   keywords: string[];
+  imagePrompt: string;
 }
 
 /** An existing post the rewriter may link to from the new article's body. */
@@ -34,6 +35,7 @@ const responseSchema: ResponseSchema = {
     metaTitle: { type: SchemaType.STRING },
     metaDescription: { type: SchemaType.STRING },
     keywords: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    imagePrompt: { type: SchemaType.STRING },
   },
   required: [
     "title",
@@ -44,6 +46,7 @@ const responseSchema: ResponseSchema = {
     "metaTitle",
     "metaDescription",
     "keywords",
+    "imagePrompt",
   ],
 };
 
@@ -76,6 +79,7 @@ Rewrite it as an original, factual, and engaging news post. Rules:
 - "metaTitle" <= 60 chars, "metaDescription" <= 155 chars, both SEO-optimised.
 - "category" MUST be one of: ${CATEGORIES.join(", ")}.
 - "tags" and "keywords": 3-6 lowercase items each.
+- "imagePrompt": ONE sentence naming the single concrete visual subject of THIS article to depict on a cover image — the specific object, scene, or place the story is about (e.g. "a glowing Bitcoin coin rising over a city skyline", "a stylised courtroom with a gavel", "a cracked padlock over a digital exchange dashboard"). Describe the SUBJECT ONLY. Do NOT mention art style, colours, lighting, aspect ratio, text, words, or logos — those are added automatically.
 Return ONLY the JSON object matching the schema.`;
 
 /** Build the "RELATED POSTS" prompt block + linking instructions, or "" if none. */

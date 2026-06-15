@@ -36,14 +36,19 @@ interface ImagenPrediction {
   mimeType?: string;
 }
 
-/** Build a branded, text-free neon/cyberpunk prompt from the post metadata. */
-function buildPrompt(title: string, category: string): string {
+/**
+ * Wrap Gemini's article-specific visual concept in our neon/cyberpunk house
+ * style plus the strict text-free guardrails. The concept comes from the
+ * rewrite step (which has the full article); `title` is the fallback subject if
+ * that concept is missing.
+ */
+function buildPrompt(imagePrompt: string, title: string): string {
+  const subject = imagePrompt.trim() || title;
   return (
-    `Abstract cyberpunk digital illustration for a cryptocurrency news article ` +
-    `titled "${title}". Theme: ${category}. Glowing neon cyan and violet light ` +
-    `on a dark, futuristic, high-tech background. Editorial hero image, cinematic, ` +
-    `sleek. Absolutely no text, no words, no letters, no numbers, no logos, and ` +
-    `no charts. Wide 16:9 composition.`
+    `Digital illustration for a cryptocurrency news article. Subject: ${subject}. ` +
+    `Glowing neon cyan and violet light on a dark, futuristic, high-tech ` +
+    `background. Editorial hero image, cinematic, sleek. Absolutely no text, no ` +
+    `words, no letters, no numbers, no logos, and no charts. Wide 16:9 composition.`
   );
 }
 
@@ -51,8 +56,8 @@ function buildPrompt(title: string, category: string): string {
  * @returns a public image URL, or "" on failure.
  */
 export async function generateCoverImage(
+  imagePrompt: string,
   title: string,
-  category: string,
   slug: string,
 ): Promise<string> {
   if (!PROJECT) {
@@ -76,7 +81,7 @@ export async function generateCoverImage(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        instances: [{ prompt: buildPrompt(title, category) }],
+        instances: [{ prompt: buildPrompt(imagePrompt, title) }],
         parameters: {
           sampleCount: 1,
           aspectRatio: "16:9",

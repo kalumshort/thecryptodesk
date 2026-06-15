@@ -108,8 +108,8 @@ export async function runIngest(): Promise<IngestResult> {
         // Generate our own branded cover image; "" on failure falls back to
         // the placeholder on the frontend (never the scraped source image).
         const coverImage = await generateCoverImage(
+          rewritten.imagePrompt,
           rewritten.title,
-          rewritten.category,
           slug,
         );
 
