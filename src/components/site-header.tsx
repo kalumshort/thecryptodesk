@@ -1,6 +1,34 @@
 import Link from "next/link";
 import { CATEGORIES, CATEGORY_LABELS } from "@/types/post";
 import { SITE_NAME } from "@/lib/seo";
+import { MobileNav } from "@/components/mobile-nav";
+
+export type NavLink = {
+  href: string;
+  label: string;
+  accent: "acid" | "cyan" | "amber" | "violet";
+};
+
+// Single source of truth for the nav, shared by the desktop row and the mobile
+// drawer so the two never drift apart.
+const NAV_LINKS: NavLink[] = [
+  ...CATEGORIES.map((cat): NavLink => ({
+    href: `/category/${cat}`,
+    label: CATEGORY_LABELS[cat],
+    accent: "acid",
+  })),
+  { href: "/market", label: "Markets", accent: "cyan" },
+  { href: "/learn", label: "Learn", accent: "acid" },
+  { href: "/glossary", label: "Glossary", accent: "amber" },
+  { href: "/archive", label: "Archive", accent: "violet" },
+];
+
+const ACCENT_HOVER: Record<NavLink["accent"], string> = {
+  acid: "hover:text-acid hover:[text-shadow:0_0_10px_var(--acid)]",
+  cyan: "hover:text-cyan hover:[text-shadow:0_0_10px_var(--cyan)]",
+  amber: "hover:text-amber hover:[text-shadow:0_0_10px_var(--amber)]",
+  violet: "hover:text-violet hover:[text-shadow:0_0_10px_var(--violet)]",
+};
 
 export function SiteHeader() {
   return (
@@ -13,42 +41,20 @@ export function SiteHeader() {
           <span className="text-cyan text-glow-cyan">The</span>
           <span className="text-foreground">CryptoDesk</span>
         </Link>
-        <nav className="flex flex-1 items-center gap-1 overflow-x-auto text-xs">
-          {CATEGORIES.map((cat) => (
+        <nav className="hidden flex-1 items-center gap-1 text-xs md:flex">
+          {NAV_LINKS.map((link) => (
             <Link
-              key={cat}
-              href={`/category/${cat}`}
-              className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-acid hover:[text-shadow:0_0_10px_var(--acid)]"
+              key={link.href}
+              href={link.href}
+              className={`rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all ${ACCENT_HOVER[link.accent]}`}
             >
-              {CATEGORY_LABELS[cat]}
+              {link.label}
             </Link>
           ))}
-          <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-cyan/20" />
-          <Link
-            href="/market"
-            className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-cyan hover:[text-shadow:0_0_10px_var(--cyan)]"
-          >
-            Markets
-          </Link>
-          <Link
-            href="/learn"
-            className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-acid hover:[text-shadow:0_0_10px_var(--acid)]"
-          >
-            Learn
-          </Link>
-          <Link
-            href="/glossary"
-            className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-amber hover:[text-shadow:0_0_10px_var(--amber)]"
-          >
-            Glossary
-          </Link>
-          <Link
-            href="/archive"
-            className="rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-violet hover:[text-shadow:0_0_10px_var(--violet)]"
-          >
-            Archive
-          </Link>
         </nav>
+        <div className="ml-auto">
+          <MobileNav links={NAV_LINKS} />
+        </div>
       </div>
       <span className="sr-only">{SITE_NAME}</span>
     </header>
