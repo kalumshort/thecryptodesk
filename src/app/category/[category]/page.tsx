@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/post-card";
 import { getPostsByCategory } from "@/lib/posts";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, breadcrumbJsonLd } from "@/lib/seo";
 import { CATEGORIES, CATEGORY_LABELS, isCategory } from "@/types/post";
 import { CATEGORY_COLOR } from "@/lib/category-style";
 
@@ -36,6 +36,18 @@ export default async function CategoryPage({ params }: Params) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      {/* eslint-disable-next-line react/no-danger */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbJsonLd([
+              { name: "Home", path: "/" },
+              { name: label, path: `/category/${category}` },
+            ]),
+          ),
+        }}
+      />
       <div className="mb-8 flex items-center gap-4">
         <h1
           className="font-display text-2xl font-extrabold uppercase tracking-[0.25em]"

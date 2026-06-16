@@ -47,6 +47,50 @@ export function buildPostMetadata(post: Post): Metadata {
   };
 }
 
+/**
+ * schema.org Organization JSON-LD identifying the publisher site-wide.
+ * Rendered once in the root layout so Google can attribute every page to a
+ * single publisher (also referenced as `publisher` in `newsArticleJsonLd`).
+ */
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: siteUrl(),
+    description: SITE_DESCRIPTION,
+  };
+}
+
+/** schema.org WebSite JSON-LD establishing site identity. */
+export function websiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: siteUrl(),
+    description: SITE_DESCRIPTION,
+    publisher: { "@type": "Organization", name: SITE_NAME, url: siteUrl() },
+  };
+}
+
+/**
+ * schema.org BreadcrumbList JSON-LD. `items` are ordered root → current page;
+ * each `path` is site-relative and resolved to an absolute URL here.
+ */
+export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
 /** schema.org NewsArticle JSON-LD for a post page. */
 export function newsArticleJsonLd(post: Post) {
   return {

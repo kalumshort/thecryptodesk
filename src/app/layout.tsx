@@ -6,7 +6,14 @@ import { MarketTicker } from "@/components/market-ticker";
 import { SiteFooter } from "@/components/site-footer";
 import { NeuralMesh } from "@/components/neural-mesh";
 import { DiamondCursor } from "@/components/diamond-cursor";
-import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/seo";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  absoluteUrl,
+  organizationJsonLd,
+  siteUrl,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 // Display: Orbitron — cold, geometric, precise.
 const orbitron = Orbitron({
@@ -29,6 +36,9 @@ export const metadata: Metadata = {
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  alternates: {
+    types: { "application/rss+xml": absoluteUrl("/feed.xml") },
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -52,6 +62,20 @@ export default function RootLayout({
         className="relative flex min-h-full flex-col bg-background text-foreground"
         suppressHydrationWarning
       >
+        {/* Site-wide structured data: publisher identity + site entity. */}
+        {/* eslint-disable-next-line react/no-danger */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd()),
+          }}
+        />
+        {/* eslint-disable-next-line react/no-danger */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+        />
+
         {/* Living mycelial background + diamond cursor */}
         <NeuralMesh />
         <DiamondCursor />

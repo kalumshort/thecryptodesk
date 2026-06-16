@@ -12,7 +12,11 @@ import {
   getSimilarPosts,
 } from "@/lib/posts";
 import { popularTags } from "@/lib/tags";
-import { buildPostMetadata, newsArticleJsonLd } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  buildPostMetadata,
+  newsArticleJsonLd,
+} from "@/lib/seo";
 import { formatDate } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/types/post";
 import { CATEGORY_COLOR } from "@/lib/category-style";
@@ -56,6 +60,22 @@ export default async function PostPage({ params }: Params) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(newsArticleJsonLd(post)),
+        }}
+      />
+      {/* eslint-disable-next-line react/no-danger */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbJsonLd([
+              { name: "Home", path: "/" },
+              {
+                name: CATEGORY_LABELS[post.category],
+                path: `/category/${post.category}`,
+              },
+              { name: post.title, path: `/news/${post.slug}` },
+            ]),
+          ),
         }}
       />
 
