@@ -32,16 +32,16 @@ export const FEEDS: Feed[] = [
     url: "https://cointelegraph.com/rss",
     defaultCategory: "market",
   },
-  {
-    name: "Decrypt",
-    url: "https://decrypt.co/feed",
-    defaultCategory: "market",
-  },
-  {
-    name: "Bitcoin Magazine",
-    url: "https://bitcoinmagazine.com/.rss/full/",
-    defaultCategory: "bitcoin",
-  },
+  // {
+  //   name: "Decrypt",
+  //   url: "https://decrypt.co/feed",
+  //   defaultCategory: "market",
+  // },
+  // {
+  //   name: "Bitcoin Magazine",
+  //   url: "https://bitcoinmagazine.com/.rss/full/",
+  //   defaultCategory: "bitcoin",
+  // },
 ];
 
 // How many fresh items to process per feed, per run (caps AI cost).

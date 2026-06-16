@@ -183,6 +183,11 @@
      translating by exactly -50% loops with no visible seam. */
   .animate-ticker {
     animation: ticker-scroll 60s linear infinite;
+    /* Promote to its own compositor layer. Without this, mobile browsers
+       (notably iOS Safari) often refuse to animate a transform inside a
+       backdrop-filtered, overflow-hidden ancestor — the ticker sits frozen. */
+    will-change: transform;
+    backface-visibility: hidden;
   }
   @media (prefers-reduced-motion: reduce) {
     .animate-ticker {
@@ -193,9 +198,9 @@
 
 @keyframes ticker-scroll {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
