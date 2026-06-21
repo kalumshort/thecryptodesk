@@ -14,10 +14,12 @@ export type NavLink = {
 const NAV_LINKS: NavLink[] = [
   ...CATEGORIES.map((cat): NavLink => ({
     href: `/category/${cat}`,
-    label: CATEGORY_LABELS[cat],
+    // The "market" category is news; "Market News" distinguishes it from the
+    // live-prices page below (both previously read "Markets").
+    label: cat === "market" ? "Market News" : CATEGORY_LABELS[cat],
     accent: "acid",
   })),
-  { href: "/market", label: "Markets", accent: "cyan" },
+  { href: "/market", label: "Live Prices", accent: "cyan" },
   { href: "/learn", label: "Learn", accent: "acid" },
   { href: "/glossary", label: "Glossary", accent: "amber" },
   { href: "/archive", label: "Archive", accent: "violet" },

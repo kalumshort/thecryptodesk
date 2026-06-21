@@ -5,6 +5,7 @@ import { PostBody } from "@/components/post-body";
 import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
 import { Sidebar } from "@/components/sidebar";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import {
   getAllPublishedSlugs,
   getLatestPosts,
@@ -20,6 +21,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/types/post";
 import { CATEGORY_COLOR } from "@/lib/category-style";
+import { EDITORIAL } from "@/lib/authors";
 
 // ISR: serve cached HTML, refresh in the background every 5 minutes.
 export const revalidate = 300;
@@ -52,6 +54,16 @@ export default async function PostPage({ params }: Params) {
     getLatestPosts(12),
   ]);
 
+  // One breadcrumb trail, shared by the JSON-LD and the visible UI below.
+  const crumbs = [
+    { name: "Home", path: "/" },
+    {
+      name: CATEGORY_LABELS[post.category],
+      path: `/category/${post.category}`,
+    },
+    { name: post.title, path: `/news/${post.slug}` },
+  ];
+
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
       <article className="min-w-0">
@@ -66,18 +78,11 @@ export default async function PostPage({ params }: Params) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
-            breadcrumbJsonLd([
-              { name: "Home", path: "/" },
-              {
-                name: CATEGORY_LABELS[post.category],
-                path: `/category/${post.category}`,
-              },
-              { name: post.title, path: `/news/${post.slug}` },
-            ]),
-          ),
+          __html: JSON.stringify(breadcrumbJsonLd(crumbs)),
         }}
       />
+
+      <Breadcrumbs items={crumbs} />
 
       <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-widest">
         <Link
@@ -97,8 +102,14 @@ export default async function PostPage({ params }: Params) {
       <h1 className="font-display text-3xl font-extrabold leading-tight tracking-wide text-foreground text-glow-cyan sm:text-4xl">
         {post.title}
       </h1>
-      <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-        {post.excerpt}
+      <p className="mt-4 text-sm text-muted-foreground">
+        By{" "}
+        <Link
+          href={EDITORIAL.url}
+          className="font-bold text-foreground/80 transition-colors hover:text-cyan"
+        >
+          {EDITORIAL.name}
+        </Link>
       </p>
 
       {post.coverImage ? (
@@ -106,7 +117,7 @@ export default async function PostPage({ params }: Params) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={post.coverImage}
-            alt=""
+            alt={post.title}
             className="mt-8 aspect-[16/9] w-full rounded-md object-cover glow-border-cyan"
           />
         </>
@@ -119,7 +130,30 @@ export default async function PostPage({ params }: Params) {
       <div className="my-8 h-px bg-gradient-to-r from-violet/60 to-transparent" />
 
       <footer className="text-xs leading-relaxed text-muted-foreground">
-        <p>◆ Synthesised &amp; rewritten by AI for clarity.</p>
+        <p>
+          {post.sourceUrl ? (
+            <>
+              Reporting based on{" "}
+              <a
+                href={post.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="text-cyan transition-all hover:[text-shadow:0_0_10px_var(--cyan)]"
+              >
+                {post.sourceName || "the original article"}
+              </a>
+              .{" "}
+            </>
+          ) : null}
+          Edited by{" "}
+          <Link
+            href={EDITORIAL.url}
+            className="text-foreground/80 transition-colors hover:text-cyan"
+          >
+            {EDITORIAL.name}
+          </Link>
+          ; drafted with AI assistance.
+        </p>
         {post.tags.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {post.tags.map((tag) => (
@@ -137,7 +171,7 @@ export default async function PostPage({ params }: Params) {
 
       {similar.length > 0 ? (
         <section className="mt-14">
-          <SectionHeading label="Similar signals" accent={accent} />
+          <SectionHeading label="Related" accent={accent} />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {similar.map((p) => (
               <PostCard key={p.slug} post={p} />

@@ -3,7 +3,7 @@ import { CATEGORY_COLOR } from "@/lib/category-style";
 import { formatDate } from "@/lib/format";
 import { FearGreedWidget } from "@/components/fear-greed-widget";
 import { TrendingWidget } from "@/components/trending-widget";
-import type { Post } from "@/types/post";
+import { CATEGORIES, CATEGORY_LABELS, type Post } from "@/types/post";
 
 /**
  * Homepage / article-page sidebar: a compact "Trending" list of recent posts and
@@ -78,6 +78,32 @@ export function Sidebar({
           </div>
         </div>
       ) : null}
+
+      <nav className="rounded-md panel p-5" aria-label="Browse categories">
+        <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-cyan text-glow-cyan">
+          ◆ Browse
+        </h2>
+        <ul className="flex flex-col gap-2">
+          {CATEGORIES.map((cat) => (
+            <li key={cat}>
+              <Link
+                href={`/category/${cat}`}
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span
+                  aria-hidden
+                  className="h-1.5 w-1.5 shrink-0 rotate-45"
+                  style={{
+                    background: CATEGORY_COLOR[cat],
+                    boxShadow: `0 0 8px ${CATEGORY_COLOR[cat]}`,
+                  }}
+                />
+                {cat === "market" ? "Market News" : CATEGORY_LABELS[cat]}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </aside>
   );
 }

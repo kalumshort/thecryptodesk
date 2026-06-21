@@ -3,6 +3,7 @@ import { getAllPublishedSlugs, getArchiveIndex } from "@/lib/posts";
 import { getAllGuideSlugs } from "@/lib/guides";
 import { CATEGORIES } from "@/types/post";
 import { GLOSSARY } from "@/lib/glossary";
+import { getAllAuthorSlugs } from "@/lib/authors";
 import { absoluteUrl } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -24,6 +25,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: absoluteUrl(`/category/${c}`),
       changeFrequency: "hourly" as const,
       priority: 0.7,
+    })),
+    ...getAllAuthorSlugs().map((slug) => ({
+      url: absoluteUrl(`/author/${slug}`),
+      changeFrequency: "daily" as const,
+      priority: 0.5,
     })),
     ...GLOSSARY.map((t) => ({
       url: absoluteUrl(`/glossary/${t.slug}`),

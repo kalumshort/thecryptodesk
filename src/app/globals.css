@@ -29,7 +29,7 @@
   --secondary: var(--violet);
   --secondary-foreground: #04050a;
   --muted: #0f1320;
-  --muted-foreground: #7f8db0;
+  --muted-foreground: #9fb0d0;
   --accent: var(--acid);
   --accent-foreground: #04050a;
   --destructive: var(--magenta);
@@ -55,7 +55,7 @@
   --secondary: var(--violet);
   --secondary-foreground: #04050a;
   --muted: #0f1320;
-  --muted-foreground: #7f8db0;
+  --muted-foreground: #9fb0d0;
   --accent: var(--acid);
   --accent-foreground: #04050a;
   --destructive: var(--magenta);

@@ -111,6 +111,7 @@ export async function runIngest(): Promise<IngestResult> {
           rewritten.imagePrompt,
           rewritten.title,
           slug,
+          rewritten.category,
         );
 
         // Derive the archive period (YYYY-MM) from the publish date.

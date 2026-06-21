@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { Post } from "@/types/post";
+import { EDITORIAL, type Author } from "@/lib/authors";
 
 export const SITE_NAME = "TheCryptoDesk";
 export const SITE_DESCRIPTION =
@@ -26,7 +27,7 @@ export function buildPostMetadata(post: Post): Metadata {
   return {
     title,
     description,
-    keywords: post.keywords,
+    authors: [{ name: EDITORIAL.name, url: absoluteUrl(EDITORIAL.url) }],
     alternates: { canonical: url },
     openGraph: {
       type: "article",
@@ -105,7 +106,11 @@ export function newsArticleJsonLd(post: Post) {
       "@type": "WebPage",
       "@id": absoluteUrl(`/news/${post.slug}`),
     },
-    author: { "@type": "Organization", name: SITE_NAME },
+    author: {
+      "@type": "Organization",
+      name: EDITORIAL.name,
+      url: absoluteUrl(EDITORIAL.url),
+    },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
@@ -113,5 +118,19 @@ export function newsArticleJsonLd(post: Post) {
     },
     keywords: post.keywords.join(", "),
     articleSection: post.category,
+  };
+}
+
+/** schema.org ProfilePage JSON-LD for an author / editorial profile page. */
+export function authorJsonLd(author: Author) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Organization",
+      name: author.name,
+      description: author.bio,
+      url: absoluteUrl(author.url),
+    },
   };
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/post-card";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { getPostsByCategory } from "@/lib/posts";
 import { absoluteUrl, breadcrumbJsonLd } from "@/lib/seo";
 import { CATEGORIES, CATEGORY_LABELS, isCategory } from "@/types/post";
@@ -33,6 +34,10 @@ export default async function CategoryPage({ params }: Params) {
   const posts = await getPostsByCategory(category, 36);
   const label = CATEGORY_LABELS[category];
   const accent = CATEGORY_COLOR[category];
+  const crumbs = [
+    { name: "Home", path: "/" },
+    { name: label, path: `/category/${category}` },
+  ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -40,14 +45,10 @@ export default async function CategoryPage({ params }: Params) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
-            breadcrumbJsonLd([
-              { name: "Home", path: "/" },
-              { name: label, path: `/category/${category}` },
-            ]),
-          ),
+          __html: JSON.stringify(breadcrumbJsonLd(crumbs)),
         }}
       />
+      <Breadcrumbs items={crumbs} />
       <div className="mb-8 flex items-center gap-4">
         <h1
           className="font-display text-2xl font-extrabold uppercase tracking-[0.25em]"

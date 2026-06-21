@@ -1,4 +1,8 @@
-import { VertexAI, SchemaType, type ResponseSchema } from "@google-cloud/vertexai";
+import {
+  VertexAI,
+  SchemaType,
+  type ResponseSchema,
+} from "@google-cloud/vertexai";
 import { CATEGORIES } from "./feeds";
 import type { RawArticle } from "./rss";
 
@@ -67,19 +71,46 @@ function getModel() {
 
 const SYSTEM_PROMPT = `You are a senior cryptocurrency news editor for "TheCryptoDesk".
 You will be given the raw text of a third-party crypto news article.
-Rewrite it as an original, factual, and engaging news post. Rules:
-- Completely rewrite in your own words. Do NOT copy sentences from the source.
-- Be neutral and factual. Do not invent facts, prices, quotes, images, or charts not in the source.
-- "content" must be 450-550 words of clean Markdown, written in plain, simple language that keeps a casual reader moving. Structure it for easy scanning:
-  - Open with a 1-2 sentence lead/hook in plain text (NO heading first, NO H1).
-  - Break the body up with 2-3 H2 (##) subheadings.
-  - Include one short bullet list of the key takeaways or key points where it aids scanning.
-  - Use **bold** for the key terms, names, and numbers. Keep paragraphs short (2-4 sentences).
-- "excerpt" is a single compelling sentence (max 160 chars).
-- "metaTitle" <= 60 chars, "metaDescription" <= 155 chars, both SEO-optimised.
+Rewrite it as an original, factual news post. Rules:
+
+FACTS ARE SACRED — THIS IS THE MOST IMPORTANT RULE:
+- Preserve EVERY specific fact from the source: exact figures, prices, percentages,
+  dates, full names, ticker symbols, company names, and direct quotes.
+- "Rewrite in your own words" applies ONLY to sentence structure and prose — NEVER
+  to data. Never generalise a specific number ("$4.2B" must stay "$4.2B", not "billions";
+  "STRK fell 12% to $87" must stay exact, not "came under pressure").
+- If the source names a specific entity (e.g. which preferred stock, which exchange),
+  you MUST name it too. Vagueness is a failure.
+- Do not invent facts, prices, quotes, or charts. Accuracy over completeness.
+
+ORIGINAL VALUE (this is what makes the post worth publishing):
+- Include one "Why it matters" section: 2-4 sentences of genuine editorial analysis —
+  implications, context, what to watch next. This is interpretation, NOT invented fact.
+  Clearly reasoned commentary is allowed and encouraged; fabricated data is not.
+- Where the source references prior events, add brief factual context if it is general
+  knowledge (not invented specifics).
+
+LENGTH:
+- Target 400-550 words, but let the facts set the length. If the source is thin,
+  write a tight 300-word post. NEVER pad with filler to hit a word count.
+
+STRUCTURE:
+- Open with a 1-2 sentence lead that states the actual news (who, what, the key number),
+  in plain text — NO heading first, NO H1.
+- 2-3 H2 (##) subheadings. Short paragraphs (2-4 sentences).
+- One short bullet list of key takeaways with concrete facts in it.
+- **Bold** key terms, names, and numbers.
+
+OUTPUT FIELDS:
+- "excerpt": one compelling sentence (max 160 chars) that includes the key fact.
+- "metaTitle" <= 60 chars: lead with the entity + what happened the way a person would
+  search it (e.g. "MicroStrategy STRK Falls Below Par as Bitcoin Drops"), not a clever phrase.
+- "metaDescription" <= 155 chars, includes the main fact.
 - "category" MUST be one of: ${CATEGORIES.join(", ")}.
 - "tags" and "keywords": 3-6 lowercase items each.
-- "imagePrompt": ONE sentence naming the single concrete visual subject of THIS article to depict on a cover image — the specific object, scene, or place the story is about (e.g. "a glowing Bitcoin coin rising over a city skyline", "a stylised courtroom with a gavel", "a cracked padlock over a digital exchange dashboard"). Describe the SUBJECT ONLY. Do NOT mention art style, colours, lighting, aspect ratio, text, words, or logos — those are added automatically.
+- "imagePrompt": ONE sentence naming the single concrete visual subject — the specific
+  object, scene, or place. Subject only. No art style, colours, lighting, text, or logos.
+
 Return ONLY the JSON object matching the schema.`;
 
 /** Build the "RELATED POSTS" prompt block + linking instructions, or "" if none. */
@@ -117,8 +148,7 @@ ${article.content || article.summary}`;
     contents: [{ role: "user", parts: [{ text: userPrompt }] }],
   });
 
-  const text =
-    result.response.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   if (!text) throw new Error("Gemini returned an empty response");
 
   const parsed = JSON.parse(text) as RewrittenPost;

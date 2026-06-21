@@ -46,37 +46,37 @@ export default async function HomePage() {
         <section className="mb-12">
           <Link
             href={`/news/${lead.slug}`}
-            className="group grid gap-6 overflow-hidden rounded-md panel md:grid-cols-2"
+            className="group grid gap-6 overflow-hidden rounded-md panel md:min-h-[22rem] md:grid-cols-2"
             style={{ ["--accent" as string]: leadAccent }}
           >
             <div className="relative overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={lead.coverImage || "/placeholder-cover.svg"}
-                alt=""
-                className="aspect-[16/9] h-full w-full object-cover opacity-85 transition-transform duration-700 group-hover:scale-105"
+                alt={lead.title}
+                className="aspect-[16/9] h-full w-full object-cover opacity-85 transition-transform duration-700 group-hover:scale-105 md:aspect-auto"
               />
               <span className="absolute inset-0 bg-gradient-to-t from-void/80 to-transparent" />
             </div>
-            <div className="flex flex-col justify-center p-6">
+            <div className="flex flex-col justify-center p-6 md:p-8">
               <p
                 className="font-display text-xs font-bold uppercase tracking-[0.3em]"
                 style={{ color: leadAccent, textShadow: `0 0 12px ${leadAccent}` }}
               >
-                ◆ Top signal // {CATEGORY_LABELS[lead.category]}
+                ◆ Top story // {CATEGORY_LABELS[lead.category]}
               </p>
-              <h1 className="mt-3 font-display text-2xl font-extrabold leading-tight tracking-wide transition-colors group-hover:text-cyan sm:text-3xl">
+              <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-wide transition-colors group-hover:text-cyan sm:text-4xl">
                 {lead.title}
               </h1>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-4 leading-relaxed text-muted-foreground">
                 {lead.excerpt}
               </p>
             </div>
           </Link>
         </section>
 
-        {/* Latest transmissions */}
-        <SectionHeading label="Latest transmissions" />
+        {/* Latest news */}
+        <SectionHeading label="Latest News" />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((post) => (
             <PostCard key={post.slug} post={post} />
@@ -92,8 +92,13 @@ export default async function HomePage() {
               href={`/category/${category}`}
             />
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {catPosts.map((post) => (
-                <PostCard key={post.slug} post={post} />
+              {catPosts.map((post, i) => (
+                <PostCard
+                  key={post.slug}
+                  post={post}
+                  variant={i === 0 ? "featured" : "default"}
+                  className={i === 0 ? "sm:col-span-2" : undefined}
+                />
               ))}
             </div>
           </section>
