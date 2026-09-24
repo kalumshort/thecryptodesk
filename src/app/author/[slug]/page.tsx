@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
+import { BrandMark } from "@/components/site-logo";
 import { getLatestPosts } from "@/lib/posts";
 import { getAllAuthorSlugs, getAuthor } from "@/lib/authors";
 import { absoluteUrl, authorJsonLd, defaultOgImages } from "@/lib/seo";
@@ -55,11 +56,8 @@ export default async function AuthorPage({ params }: Params) {
       <header className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         {/* Geometric monogram badge — an honest mark for an editorial entity
             rather than a fabricated human portrait. */}
-        <div
-          aria-hidden
-          className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full panel font-display text-2xl font-bold text-cyan text-glow-cyan"
-        >
-          ◆
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full panel text-cyan">
+          <BrandMark size={34} />
         </div>
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-wide text-foreground text-glow-cyan sm:text-3xl">

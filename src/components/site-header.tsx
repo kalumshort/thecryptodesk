@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CATEGORIES, CATEGORY_LABELS } from "@/types/post";
 import { SITE_NAME } from "@/lib/seo";
 import { MobileNav } from "@/components/mobile-nav";
+import { SiteLogo } from "@/components/site-logo";
 
 export type NavLink = {
   href: string;
@@ -36,12 +37,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full panel border-x-0 border-t-0">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
-        <Link
-          href="/"
-          className="shrink-0 font-display text-lg font-bold uppercase tracking-[0.18em]"
-        >
-          <span className="text-cyan text-glow-cyan">The</span>
-          <span className="text-foreground">CryptoDesk</span>
+        <Link href="/" className="shrink-0" aria-label={`${SITE_NAME} home`}>
+          <SiteLogo />
         </Link>
         <nav className="hidden flex-1 items-center gap-1 text-xs md:flex">
           {NAV_LINKS.map((link) => (
@@ -58,7 +55,6 @@ export function SiteHeader() {
           <MobileNav links={NAV_LINKS} />
         </div>
       </div>
-      <span className="sr-only">{SITE_NAME}</span>
     </header>
   );
 }
