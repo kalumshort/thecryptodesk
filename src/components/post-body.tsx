@@ -19,14 +19,21 @@ function Anchor({ href = "", children, ...rest }: ComponentPropsWithoutRef<"a">)
   );
 }
 
-/** Renders AI-rewritten Markdown content as styled article HTML. */
+/**
+ * Renders Markdown content as styled article HTML.
+ *
+ * Body copy is set in the serif (`--font-body`) rather than the UI
+ * grotesque: this is the one place on the site with sustained reading, and
+ * it previously inherited a monospace.
+ */
 export function PostBody({ content }: { content: string }) {
   return (
     <div
       className="prose prose-invert max-w-none leading-relaxed
-        prose-headings:font-[var(--font-orbitron)] prose-headings:tracking-wide prose-headings:text-cyan
+        font-[var(--font-body)] prose-p:text-[1.0625rem] prose-p:leading-[1.68]
+        prose-headings:font-[var(--font-display)] prose-headings:tracking-[-0.015em] prose-headings:text-cyan
         prose-p:text-foreground/90
-        prose-strong:text-cyan
+        prose-strong:text-foreground prose-strong:font-semibold
         prose-a:text-cyan prose-a:no-underline hover:prose-a:[text-shadow:0_0_10px_var(--cyan)]
         prose-li:text-foreground/90 prose-li:marker:text-violet
         prose-blockquote:border-l-violet prose-blockquote:text-muted-foreground

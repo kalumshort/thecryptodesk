@@ -74,7 +74,7 @@ export default function TermsPage() {
   return (
     <StaticPage
       title="Terms"
-      accent="var(--magenta)"
+      accent="var(--amber)"
       intro="The terms covering use of this site, including the financial-advice disclaimer."
       updated={UPDATED}
     >

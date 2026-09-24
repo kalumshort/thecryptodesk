@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CATEGORIES, CATEGORY_LABELS } from "@/types/post";
 import { SITE_NAME } from "@/lib/seo";
+import { SiteLogo } from "@/components/site-logo";
 
 /**
  * Standing links are separated from category links so the trust pages (about,
@@ -21,13 +22,13 @@ export function SiteFooter() {
     <footer className="mt-16 panel border-x-0 border-b-0">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 text-xs text-muted-foreground">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <p className="max-w-md leading-relaxed">
-            <span className="font-display uppercase tracking-widest text-cyan">
-              {SITE_NAME}
-            </span>{" "}
-            — cryptocurrency news, live prices and plain-English explainers.
-            Not financial advice.
-          </p>
+          <div className="flex max-w-md flex-col gap-3">
+            <SiteLogo markSize={22} />
+            <p className="leading-relaxed">
+              Cryptocurrency news, live prices and plain-English explainers.
+              Not financial advice.
+            </p>
+          </div>
           <nav
             aria-label="Browse categories"
             className="flex flex-wrap gap-x-4 gap-y-2 font-bold uppercase tracking-widest"

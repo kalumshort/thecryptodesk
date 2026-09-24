@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Orbitron, Space_Mono } from "next/font/google";
+import { Space_Grotesk, Newsreader, Space_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
@@ -14,20 +14,34 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 
-// Display: Orbitron — cold, geometric, precise. Only 700/800 are actually used
-// (`font-bold` / `font-extrabold`); the other four weights were dead payload.
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
+// Display: Space Grotesk — headlines, the wordmark, navigation, UI.
+// Replaces Orbitron, which is the default shorthand for "futuristic" and so
+// the house face of crypto scam sites — the one association a news desk
+// cannot afford.
+const grotesk = Space_Grotesk({
+  variable: "--font-grotesk",
   subsets: ["latin"],
-  weight: ["700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-// Body: Space Mono — biological, mechanical.
+// Body: Newsreader — article and guide prose. A serif drawn for screen
+// reading; the previous body face was a monospace, which is slow at length.
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+// Data: Space Mono — prices, timestamps, tickers, labels. Figures align in a
+// column. Kept from the old system: it was the one face doing real work.
 const spaceMono = Space_Mono({
   variable: "--font-space-mono",
   subsets: ["latin"],
   weight: ["400", "700"],
+  display: "swap",
 });
 
 // Analytics / verification are opt-in via env so local dev and preview builds
@@ -65,7 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${orbitron.variable} ${spaceMono.variable} h-full antialiased`}
+      className={`dark ${grotesk.variable} ${newsreader.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body
         className="relative flex min-h-full flex-col bg-background text-foreground"

@@ -18,7 +18,7 @@ export async function FearGreedWidget() {
 
   return (
     <div className="rounded-md panel p-5">
-      <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-acid [text-shadow:0_0_10px_var(--acid)]">
+      <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-cyan text-glow-cyan">
         <Diamond className="mr-1.5" />
         Fear &amp; Greed
       </h2>

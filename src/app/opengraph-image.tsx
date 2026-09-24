@@ -22,7 +22,7 @@ export default async function Image() {
   // `next/font` can't be used inside ImageResponse — Satori needs raw font
   // bytes, so the TTF is committed under assets/ and read from disk.
   const orbitron = await readFile(
-    join(process.cwd(), "assets", "Orbitron-ExtraBold.ttf"),
+    join(process.cwd(), "assets", "SpaceGrotesk-Bold.ttf"),
   );
 
   return new ImageResponse(
@@ -36,10 +36,10 @@ export default async function Image() {
           flexDirection: "column",
           justifyContent: "center",
           padding: 80,
-          background: "#04050a",
+          background: "#05070D",
           backgroundImage:
-            "radial-gradient(circle at 12% 0%, rgba(176,107,255,0.22), transparent 45%), radial-gradient(circle at 88% 100%, rgba(34,224,255,0.18), transparent 50%)",
-          color: "#d7e6ff",
+            "radial-gradient(circle at 12% 0%, rgba(163,107,255,0.20), transparent 45%), radial-gradient(circle at 88% 100%, rgba(34,224,255,0.18), transparent 50%)",
+          color: "#E8F0FF",
         }}
       >
         {/* Satori needs `display: flex` on ANY element with more than one
@@ -49,7 +49,7 @@ export default async function Image() {
           style={{
             display: "flex",
             alignItems: "center",
-            fontFamily: "Orbitron",
+            fontFamily: "Space Grotesk",
             fontSize: 76,
             letterSpacing: -1,
           }}
@@ -64,7 +64,7 @@ export default async function Image() {
             marginTop: 28,
             fontSize: 34,
             lineHeight: 1.35,
-            color: "#9fb0d0",
+            color: "#9DB0CE",
             maxWidth: 900,
           }}
         >
@@ -79,7 +79,7 @@ export default async function Image() {
             display: "flex",
             height: 6,
             width: 240,
-            background: "linear-gradient(to right, #22e0ff, #b06bff)",
+            background: "linear-gradient(to right, #22e0ff, #a36bff)",
           }}
         />
       </div>
@@ -88,10 +88,10 @@ export default async function Image() {
       ...size,
       fonts: [
         {
-          name: "Orbitron",
+          name: "Space Grotesk",
           data: orbitron as unknown as ArrayBuffer,
           style: "normal",
-          weight: 800,
+          weight: 700,
         },
       ],
     },

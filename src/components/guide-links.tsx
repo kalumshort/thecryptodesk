@@ -53,7 +53,7 @@ export async function GuideLinks({
 
   return (
     <section className="mt-16">
-      <SectionHeading label="Learn the basics" accent="var(--acid)" href="/learn" />
+      <SectionHeading label="Learn the basics" accent="var(--cyan)" href="/learn" />
       <p className="-mt-2 mb-5 text-sm text-muted-foreground">
         New to {CATEGORY_LABELS[category]}? These explainers cover the mechanics
         behind the headlines.
@@ -65,7 +65,7 @@ export async function GuideLinks({
               href={`/learn/${guide.slug}`}
               className="group flex h-full flex-col gap-2 rounded-md panel p-4 transition-all hover:-translate-y-0.5"
             >
-              <span className="font-display text-[10px] font-bold uppercase tracking-widest text-acid">
+              <span className="font-display text-[10px] font-bold uppercase tracking-widest text-cyan">
                 {LEVEL_LABELS[guide.level]}
               </span>
               <span className="text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-acid">

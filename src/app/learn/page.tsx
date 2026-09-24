@@ -66,7 +66,7 @@ export default async function LearnPage() {
       ) : null}
       <Breadcrumbs items={crumbs} />
       <div className="mb-3 flex items-center gap-4">
-        <h1 className="font-display text-2xl font-extrabold uppercase tracking-[0.25em] text-acid [text-shadow:0_0_16px_var(--acid)]">
+        <h1 className="font-display text-2xl font-extrabold uppercase tracking-[0.25em] text-cyan text-glow-cyan">
           <Diamond className="mr-1.5" />
           Learn
         </h1>

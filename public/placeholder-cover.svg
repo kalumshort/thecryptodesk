@@ -1,14 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="TheCryptoDesk">
   <defs>
-    <radialGradient id="g" cx="50%" cy="40%" r="70%">
-      <stop offset="0%" stop-color="#0a1530"/>
-      <stop offset="100%" stop-color="#04050a"/>
-    </radialGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M60 0H0V60" fill="none" stroke="#22e0ff" stroke-opacity="0.05" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect width="1200" height="675" fill="url(#g)"/>
-  <text x="600" y="345" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="800" letter-spacing="4" text-anchor="middle" filter="url(#glow)">
-    <tspan fill="#22e0ff">The</tspan><tspan fill="#b06bff">CryptoDesk</tspan>
-  </text>
-  <text x="600" y="400" font-family="monospace" font-size="20" letter-spacing="8" fill="#7f8db0" text-anchor="middle">◆ SIGNAL ◆</text>
+  <rect width="1200" height="675" fill="#05070d"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+  <!-- The brand mark, held back so a real cover always outranks it. -->
+  <g transform="translate(540 278) scale(1.2)" opacity="0.3">
+    <polygon points="50,6 90,46 10,46" fill="#22e0ff"/>
+    <polygon points="10,54 90,54 50,94" fill="none" stroke="#22e0ff" stroke-width="7" stroke-linejoin="round"/>
+  </g>
+  <rect x="540" y="430" width="120" height="3" fill="#a36bff" opacity="0.4"/>
 </svg>

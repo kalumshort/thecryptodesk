@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Diamond } from "@/components/diamond";
 
 /**
- * The site's standard section heading: a `◆`-prefixed Orbitron label followed by
+ * The site's standard section heading: a `◆`-prefixed display-face label followed by
  * a fading hairline. Pass `accent` for a category-colored, glowing label and
  * `href` to make the label a link (e.g. category sections → their category page).
  *
