@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { LEVEL_COLOR, LEVEL_LABELS, type Guide } from "@/types/guide";
 
@@ -15,13 +16,16 @@ export function GuideCard({ guide }: { guide: Guide }) {
         className="absolute inset-x-0 top-0 h-px opacity-40 transition-opacity group-hover:opacity-100"
         style={{ background: accent, boxShadow: `0 0 14px ${accent}` }}
       />
-      <Link href={`/learn/${guide.slug}`} className="block overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      <Link
+        href={`/learn/${guide.slug}`}
+        className="relative block aspect-[16/9] overflow-hidden"
+      >
+        <Image
           src={guide.coverImage || "/placeholder-cover.svg"}
           alt=""
-          loading="lazy"
-          className="aspect-[16/9] w-full object-cover opacity-80 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+          fill
+          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 360px"
+          className="object-cover opacity-80 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
         />
       </Link>
       <div className="flex flex-1 flex-col gap-2 p-4">

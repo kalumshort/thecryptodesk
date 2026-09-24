@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CATEGORY_LABELS, type Post } from "@/types/post";
 import { CATEGORY_COLOR } from "@/lib/category-style";
@@ -34,15 +35,22 @@ export function PostCard({
         className="absolute inset-x-0 top-0 z-20 h-px opacity-40 transition-opacity group-hover:opacity-100"
         style={{ background: accent, boxShadow: `0 0 14px ${accent}` }}
       />
-      <div className="overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      {/* The aspect ratio lives on the wrapper so `fill` has a sized box to
+          absolutely position into — this is what reserves layout space and
+          keeps the card grid from shifting as thumbnails load. */}
+      <div
+        className={`relative overflow-hidden ${
+          featured ? "aspect-[16/10] md:aspect-auto" : "aspect-[16/9]"
+        }`}
+      >
+        <Image
           src={post.coverImage || "/placeholder-cover.svg"}
-          alt={post.title}
-          loading="lazy"
-          className={`w-full object-cover opacity-80 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100 ${
-            featured ? "aspect-[16/10] md:aspect-auto md:h-full" : "aspect-[16/9]"
-          }`}
+          // Decorative: the card's own <h3> directly below carries the title,
+          // so repeating it here just makes screen readers say it twice.
+          alt=""
+          fill
+          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 360px"
+          className="object-cover opacity-80 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
         />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">

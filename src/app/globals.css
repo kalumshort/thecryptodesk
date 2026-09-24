@@ -107,6 +107,9 @@
     @apply border-border;
   }
 
+  /* Ambient depth, done in pure CSS. This replaces a full-viewport canvas that
+     ran a requestAnimationFrame loop with O(n²) neighbour linking on every page
+     — the single largest main-thread cost on the site, and unusable on mobile. */
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-space-mono), ui-monospace, monospace;
@@ -120,20 +123,23 @@
         circle at 85% 100%,
         color-mix(in oklch, var(--cyan) 10%, transparent),
         transparent 50%
+      ),
+      linear-gradient(
+        color-mix(in oklch, var(--cyan) 4%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in oklch, var(--cyan) 4%, transparent) 1px,
+        transparent 1px
       );
+    background-size: auto, auto, 64px 64px, 64px 64px;
     background-attachment: fixed;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-orbitron), var(--font-space-mono), sans-serif;
     letter-spacing: 0.02em;
-  }
-
-  /* Hide the OS cursor on precise pointers — the diamond cursor takes over. */
-  @media (hover: hover) and (pointer: fine) {
-    * {
-      cursor: none !important;
-    }
   }
 
   ::selection {

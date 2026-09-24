@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getTrendingCoins } from "@/lib/coingecko";
+import { Diamond } from "@/components/diamond";
 
 /**
  * Sidebar "Trending" coins from CoinGecko search popularity. Async server
@@ -12,7 +14,8 @@ export async function TrendingWidget() {
   return (
     <div className="rounded-md panel p-5">
       <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-amber [text-shadow:0_0_10px_var(--amber)]">
-        ◆ Trending coins
+        <Diamond className="mr-1.5" />
+        Trending coins
       </h2>
       <ul className="flex flex-col gap-3">
         {coins.map((c, i) => (
@@ -24,13 +27,15 @@ export async function TrendingWidget() {
               <span className="w-4 shrink-0 text-right text-[10px] text-muted-foreground">
                 {i + 1}
               </span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              {/* `unoptimized`: CoinGecko's `thumb` is already a 25px PNG.
+                  Running it through the optimizer would burn Cloud Run CPU to
+                  save a couple of hundred bytes. */}
+              <Image
                 src={c.thumb}
                 alt=""
                 width={18}
                 height={18}
-                loading="lazy"
+                unoptimized
                 className="h-[18px] w-[18px] rounded-full"
               />
               <span className="min-w-0 truncate font-bold text-foreground transition-colors group-hover:text-amber">
