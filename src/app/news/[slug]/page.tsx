@@ -5,15 +5,15 @@ import { notFound } from "next/navigation";
 import { PostBody } from "@/components/post-body";
 import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
-import { Sidebar } from "@/components/sidebar";
+import { ArticleRail } from "@/components/article-rail";
+import { ReadingProgress } from "@/components/reading-progress";
+import { BrandMark } from "@/components/site-logo";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import {
   getAllPublishedSlugs,
-  getLatestPosts,
   getPostBySlug,
   getSimilarPosts,
 } from "@/lib/posts";
-import { popularTags } from "@/lib/tags";
 import {
   breadcrumbJsonLd,
   buildPostMetadata,
@@ -23,7 +23,6 @@ import { formatDate } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/types/post";
 import { CATEGORY_COLOR } from "@/lib/category-style";
 import { EDITORIAL } from "@/lib/authors";
-import { Diamond } from "@/components/diamond";
 import { GlossaryLinks } from "@/components/glossary-links";
 
 // ISR: serve cached HTML, refresh in the background every 5 minutes.
@@ -52,10 +51,10 @@ export default async function PostPage({ params }: Params) {
   if (!post) notFound();
 
   const accent = CATEGORY_COLOR[post.category];
-  const [similar, latest] = await Promise.all([
-    getSimilarPosts(post.category, post.slug, 3),
-    getLatestPosts(12),
-  ]);
+  // Six: three for the rail, three for the "Read next" grid.
+  const similar = await getSimilarPosts(post.category, post.slug, 6);
+  const railPosts = similar.slice(0, 3);
+  const readNext = similar.slice(3, 6);
 
   // One breadcrumb trail, shared by the JSON-LD and the visible UI below.
   const crumbs = [
@@ -68,8 +67,7 @@ export default async function PostPage({ params }: Params) {
   ];
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <article className="min-w-0">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -83,119 +81,147 @@ export default async function PostPage({ params }: Params) {
         }}
       />
 
-      <Breadcrumbs items={crumbs} />
+      <ReadingProgress />
 
-      <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-widest">
-        <Link
-          href={`/category/${post.category}`}
-          className="font-display font-bold"
-          style={{ color: accent, textShadow: `0 0 10px ${accent}` }}
-        >
-          <Diamond className="mr-1.5" />
-          {CATEGORY_LABELS[post.category]}
-        </Link>
-        <span className="text-muted-foreground">
-          <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-          {" // "}
-          {post.readingTimeMinutes}m read
-        </span>
+      <div className="mx-auto max-w-6xl px-4 pt-6">
+        <Breadcrumbs items={crumbs} />
       </div>
 
-      <h1 className="font-display text-3xl font-extrabold leading-tight tracking-wide text-foreground text-glow-cyan sm:text-4xl">
-        {post.title}
-      </h1>
-      <p className="mt-4 text-sm text-muted-foreground">
-        By{" "}
+      {/* Headline block: sits above the cover so the story is legible before
+          any image loads, and so a post without one still reads as an article
+          rather than a gap. */}
+      <header className="mx-auto max-w-6xl px-4 pb-7">
         <Link
-          href={EDITORIAL.url}
-          className="font-bold text-foreground/80 transition-colors hover:text-cyan"
+          href={`/category/${post.category}`}
+          className="font-mono text-[11px] font-bold uppercase tracking-widest"
+          style={{ color: accent }}
         >
-          {EDITORIAL.name}
+          {CATEGORY_LABELS[post.category]}
         </Link>
-      </p>
+        <h1 className="mt-3 max-w-[900px] font-display text-[32px] font-bold leading-[1.08] tracking-[-0.035em] text-foreground sm:text-5xl">
+          {post.title}
+        </h1>
+        {/* No standfirst here on purpose. The generator writes `excerpt` as a
+            one-sentence summary of the same lede the body opens with, so
+            printing both stacks two near-identical sentences. The excerpt
+            still does its work as the meta description and on cards. */}
+
+        <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-border pt-5">
+          <span className="flex size-[38px] shrink-0 items-center justify-center rounded-full panel text-cyan">
+            <BrandMark size={17} solid />
+          </span>
+          <span className="flex flex-col gap-0.5">
+            <Link
+              href={EDITORIAL.url}
+              className="font-display text-sm font-semibold text-foreground transition-colors hover:text-cyan"
+            >
+              {EDITORIAL.name}
+            </Link>
+            <span className="font-mono text-[11px] uppercase tracking-widest text-text-low">
+              <time dateTime={post.publishedAt}>
+                {formatDate(post.publishedAt)}
+              </time>
+              {` · ${post.readingTimeMinutes}m read`}
+            </span>
+          </span>
+        </div>
+      </header>
 
       {post.coverImage ? (
-        <Image
-          src={post.coverImage}
-          alt={post.title}
-          // Explicit intrinsic size reserves the 16:9 box before the image
-          // arrives — without it every article page shifted on load.
-          width={1200}
-          height={675}
-          sizes="(max-width: 1023px) 100vw, 760px"
-          preload
-          className="mt-8 aspect-[16/9] w-full rounded-md object-cover glow-border-cyan"
-        />
+        <div className="mx-auto max-w-6xl px-4 pb-9">
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            // Explicit intrinsic size reserves the box before the image
+            // arrives — without it every article page shifted on load.
+            width={1200}
+            height={675}
+            sizes="(max-width: 1279px) 100vw, 1152px"
+            preload
+            className="aspect-[16/9] w-full rounded-md border border-border object-cover sm:aspect-[21/9]"
+          />
+        </div>
       ) : null}
 
-      <div className="my-8 h-px bg-gradient-to-r from-cyan/60 via-violet/30 to-transparent" />
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-10 lg:grid-cols-[minmax(0,1fr)_336px]">
+        <article className="min-w-0">
+          <PostBody content={post.content} />
 
-      <PostBody content={post.content} />
+          {post.tags.length > 0 ? (
+            <div className="mt-9 flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/tag/${encodeURIComponent(tag)}`}
+                  className="rounded-sm border border-violet/40 px-2.5 py-1 font-mono text-[11px] uppercase tracking-widest text-violet transition-colors hover:border-violet hover:bg-violet/10"
+                >
+                  {tag}
+                </Link>
+              ))}
+            </div>
+          ) : null}
 
-      <div className="my-8 h-px bg-gradient-to-r from-violet/60 to-transparent" />
+          <GlossaryLinks keywords={post.keywords} tags={post.tags} />
 
-      <footer className="text-xs leading-relaxed text-muted-foreground">
-        <p>
-          {post.sourceUrl ? (
-            <>
-              Reporting based on{" "}
+          {/* Source attribution as a card rather than a line of grey text:
+              linking out to the original is a trust signal worth showing. */}
+          <footer className="mt-9 flex flex-col gap-4 rounded-md panel p-5 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-text-low">
+                Reporting based on
+              </h2>
+              <p className="mt-2 font-display text-base font-semibold text-foreground">
+                {post.sourceName || "Third-party reporting"}
+              </p>
+              <p className="mt-1.5 font-[var(--font-body)] text-[14.5px] leading-relaxed text-muted-foreground">
+                Summarised by{" "}
+                <Link href={EDITORIAL.url} className="text-foreground/85">
+                  {EDITORIAL.name}
+                </Link>
+                . Read our{" "}
+                <Link href="/editorial-policy" className="text-cyan">
+                  editorial policy
+                </Link>
+                .
+              </p>
+            </div>
+            {post.sourceUrl ? (
               <a
                 href={post.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="text-cyan transition-all hover:[text-shadow:0_0_10px_var(--cyan)]"
+                className="flex shrink-0 items-center justify-center gap-2 rounded-sm border border-cyan px-4 py-2.5 font-mono text-[11px] uppercase tracking-widest text-cyan transition-colors hover:bg-cyan/10"
               >
-                {post.sourceName || "the original article"}
+                Read the original
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17L17 7M9 7h8v8" />
+                </svg>
               </a>
-              .{" "}
-            </>
-          ) : null}
-          Published by{" "}
-          <Link
-            href={EDITORIAL.url}
-            className="text-foreground/80 transition-colors hover:text-cyan"
-          >
-            {EDITORIAL.name}
-          </Link>
-          {" — see our "}
-          <Link
-            href="/editorial-policy"
-            className="text-foreground/80 transition-colors hover:text-cyan"
-          >
-            editorial policy
-          </Link>
-          .
-        </p>
-        {post.tags.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-              <Link
-                key={tag}
-                href={`/tag/${encodeURIComponent(tag)}`}
-                className="rounded-sm border border-violet/40 px-2 py-1 uppercase tracking-widest text-violet transition-all hover:border-violet hover:[text-shadow:0_0_10px_var(--violet)]"
-              >
-                {tag}
-              </Link>
-            ))}
-          </div>
-        ) : null}
-      </footer>
+            ) : null}
+          </footer>
+        </article>
 
-      <GlossaryLinks keywords={post.keywords} tags={post.tags} />
+        <ArticleRail category={post.category} more={railPosts} />
+      </div>
 
-      {similar.length > 0 ? (
-        <section className="mt-14">
-          <SectionHeading label="Related" accent={accent} />
+      {readNext.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-4 pb-14">
+          <SectionHeading label="Read next" accent={accent} />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {similar.map((p) => (
+            {readNext.map((p) => (
               <PostCard key={p.slug} post={p} />
             ))}
           </div>
         </section>
       ) : null}
-      </article>
-
-      <Sidebar latest={latest} tags={popularTags(latest)} />
     </div>
   );
 }
