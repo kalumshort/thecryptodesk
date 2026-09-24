@@ -7,7 +7,6 @@ import { SiteLogo } from "@/components/site-logo";
 export type NavLink = {
   href: string;
   label: string;
-  accent: "acid" | "cyan" | "amber" | "violet";
 };
 
 // Single source of truth for the nav, shared by the desktop row and the mobile
@@ -18,20 +17,22 @@ const NAV_LINKS: NavLink[] = [
     // The "market" category is news; "Market News" distinguishes it from the
     // live-prices page below (both previously read "Markets").
     label: cat === "market" ? "Market News" : CATEGORY_LABELS[cat],
-    accent: "acid",
   })),
-  { href: "/market", label: "Live Prices", accent: "cyan" },
-  { href: "/learn", label: "Learn", accent: "acid" },
-  { href: "/glossary", label: "Glossary", accent: "amber" },
-  { href: "/archive", label: "Archive", accent: "violet" },
+  { href: "/market", label: "Live Prices" },
+  { href: "/learn", label: "Learn" },
+  { href: "/glossary", label: "Glossary" },
+  { href: "/archive", label: "Archive" },
 ];
 
-const ACCENT_HOVER: Record<NavLink["accent"], string> = {
-  acid: "hover:text-acid hover:[text-shadow:0_0_10px_var(--acid)]",
-  cyan: "hover:text-cyan hover:[text-shadow:0_0_10px_var(--cyan)]",
-  amber: "hover:text-amber hover:[text-shadow:0_0_10px_var(--amber)]",
-  violet: "hover:text-violet hover:[text-shadow:0_0_10px_var(--violet)]",
-};
+/**
+ * One hover treatment for every item, shared with the mobile drawer.
+ *
+ * Each link used to glow in its own colour, which made the nav a row of five
+ * competing hues — and put the "up" green on every category link, where it
+ * read as a market signal rather than a topic.
+ */
+export const NAV_LINK_CLASS =
+  "rounded-sm text-muted-foreground transition-colors hover:text-foreground";
 
 export function SiteHeader() {
   return (
@@ -40,12 +41,12 @@ export function SiteHeader() {
         <Link href="/" className="shrink-0" aria-label={`${SITE_NAME} home`}>
           <SiteLogo />
         </Link>
-        <nav className="hidden flex-1 items-center gap-1 text-xs md:flex">
+        <nav className="hidden flex-1 items-center gap-0.5 md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-sm px-3 py-1.5 font-bold uppercase tracking-widest text-muted-foreground transition-all ${ACCENT_HOVER[link.accent]}`}
+              className={`${NAV_LINK_CLASS} whitespace-nowrap px-2.5 py-2 text-[13px] font-medium`}
             >
               {link.label}
             </Link>

@@ -4,16 +4,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import type { NavLink } from "@/components/site-header";
-
-// Static hover-glow classes per accent. Kept as a lookup (not interpolated)
-// so Tailwind can see every class name at build time.
-const ACCENT_HOVER: Record<NavLink["accent"], string> = {
-  acid: "hover:text-acid hover:[text-shadow:0_0_10px_var(--acid)]",
-  cyan: "hover:text-cyan hover:[text-shadow:0_0_10px_var(--cyan)]",
-  amber: "hover:text-amber hover:[text-shadow:0_0_10px_var(--amber)]",
-  violet: "hover:text-violet hover:[text-shadow:0_0_10px_var(--violet)]",
-};
+import { NAV_LINK_CLASS, type NavLink } from "@/components/site-header";
+import { Diamond } from "@/components/diamond";
 
 /**
  * Mobile-only nav: a hamburger button that opens a slide-in drawer from the
@@ -68,14 +60,15 @@ export function MobileNav({ links }: { links: NavLink[] }) {
                 className="fixed right-0 top-0 z-50 flex h-full w-72 max-w-[80vw] flex-col panel border-y-0 border-r-0"
               >
                 <div className="flex items-center justify-between px-4 py-3">
-                  <span className="font-display text-xs font-bold uppercase tracking-[0.3em] text-cyan text-glow-cyan">
-                    ◆ Menu
+                  <span className="flex items-center font-display text-xs font-semibold uppercase tracking-[0.2em] text-cyan">
+                    <Diamond className="mr-1.5" />
+                    Menu
                   </span>
                   <button
                     type="button"
                     aria-label="Close menu"
                     onClick={() => setOpen(false)}
-                    className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:text-magenta"
+                    className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -86,7 +79,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
                       key={link.href}
                       href={link.href}
                       onClick={() => setOpen(false)}
-                      className={`rounded-sm px-3 py-3 text-sm font-bold uppercase tracking-widest text-muted-foreground transition-all ${ACCENT_HOVER[link.accent]}`}
+                      className={`${NAV_LINK_CLASS} px-3 py-3 text-[15px] font-medium`}
                     >
                       {link.label}
                     </Link>
