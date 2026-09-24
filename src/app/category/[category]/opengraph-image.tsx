@@ -24,10 +24,10 @@ export function generateStaticParams() {
 /** Palette vars resolve to nothing inside Satori, so map to literals here. */
 const HEX: Record<string, string> = {
   "var(--cyan)": "#22e0ff",
-  "var(--violet)": "#b06bff",
-  "var(--acid)": "#b6ff3c",
-  "var(--magenta)": "#ff3ca6",
-  "var(--amber)": "#ffb43c",
+  "var(--violet)": "#a36bff",
+  "var(--acid)": "#5ee9a0",
+  "var(--magenta)": "#ff6b81",
+  "var(--amber)": "#ffb020",
 };
 
 export default async function Image({
@@ -45,7 +45,7 @@ export default async function Image({
     : "#22e0ff";
 
   const orbitron = await readFile(
-    join(process.cwd(), "assets", "Orbitron-ExtraBold.ttf"),
+    join(process.cwd(), "assets", "SpaceGrotesk-Bold.ttf"),
   );
 
   return new ImageResponse(
@@ -58,8 +58,8 @@ export default async function Image({
           flexDirection: "column",
           justifyContent: "center",
           padding: 80,
-          background: "#04050a",
-          color: "#d7e6ff",
+          background: "#05070D",
+          color: "#E8F0FF",
         }}
       >
         {/* No `◆` here: Satori has no glyph for it in this font and falls back
@@ -83,7 +83,7 @@ export default async function Image({
           style={{
             display: "flex",
             marginTop: 24,
-            fontFamily: "Orbitron",
+            fontFamily: "Space Grotesk",
             fontSize: 96,
             letterSpacing: -2,
             color: accent,
@@ -97,7 +97,7 @@ export default async function Image({
             display: "flex",
             marginTop: 20,
             fontSize: 34,
-            color: "#9fb0d0",
+            color: "#9DB0CE",
           }}
         >
           {`Latest ${label} news and analysis`}
@@ -120,10 +120,10 @@ export default async function Image({
       ...size,
       fonts: [
         {
-          name: "Orbitron",
+          name: "Space Grotesk",
           data: orbitron as unknown as ArrayBuffer,
           style: "normal",
-          weight: 800,
+          weight: 700,
         },
       ],
     },

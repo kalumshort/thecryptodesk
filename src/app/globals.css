@@ -9,57 +9,63 @@
 /* ─── Cosmic Bio-Digitalism palette ─────────────────────────────── */
 :root {
   /* Raw biological / digital pigments */
-  --void: #04050a; /* deep void black */
-  --void-panel: #0a0d17; /* membrane panel */
-  --cyan: #22e0ff; /* cyan bioluminescence */
-  --violet: #b06bff; /* violet spores */
-  --acid: #b6ff3c; /* acid green */
-  --magenta: #ff3ca6; /* magenta warnings */
-  --amber: #ffb43c; /* amber yields */
+  --void: #05070d; /* ground */
+  --void-panel: #0a0e18; /* panel */
+  --cyan: #22e0ff; /* signal — primary brand accent */
+  --violet: #a36bff; /* deep — second voice */
+  --acid: #5ee9a0; /* up — market direction only */
+  --magenta: #ff6b81; /* down — market direction only */
+  --amber: #ffb020; /* flag */
 
   /* shadcn semantic tokens mapped onto the palette */
   --background: var(--void);
-  --foreground: #d7e6ff;
+  --foreground: #e8f0ff;
   --card: var(--void-panel);
-  --card-foreground: #d7e6ff;
-  --popover: #070912;
-  --popover-foreground: #d7e6ff;
+  --card-foreground: #e8f0ff;
+  --popover: #0a0e18;
+  --popover-foreground: #e8f0ff;
   --primary: var(--cyan);
-  --primary-foreground: #04050a;
+  --primary-foreground: #05070d;
   --secondary: var(--violet);
-  --secondary-foreground: #04050a;
-  --muted: #0f1320;
-  --muted-foreground: #9fb0d0;
+  --secondary-foreground: #05070d;
+  --muted: #131926;
+  --muted-foreground: #9db0ce;
   --accent: var(--acid);
-  --accent-foreground: #04050a;
+  --accent-foreground: #05070d;
   --destructive: var(--magenta);
-  --border: color-mix(in oklch, var(--cyan) 16%, transparent);
+  --border: #1e2636;
   --input: color-mix(in oklch, var(--cyan) 22%, transparent);
   --ring: var(--cyan);
 
+  /* Surfaces above the panel, and the hairline. */
+  --raised: #131926;
+  --line: #1e2636;
+  /* Meta text: 5.9:1 on the ground. The old #64748f measured 4.3:1. */
+  --text-low: #7c8ca8;
+
   --radius: 0.3rem;
 
-  --font-display: var(--font-orbitron);
+  --font-display: var(--font-grotesk);
 }
 
 /* Force the void aesthetic regardless of OS theme. */
 .dark {
   --background: var(--void);
-  --foreground: #d7e6ff;
+  --foreground: #e8f0ff;
   --card: var(--void-panel);
-  --card-foreground: #d7e6ff;
-  --popover: #070912;
-  --popover-foreground: #d7e6ff;
+  --card-foreground: #e8f0ff;
+  --popover: #0a0e18;
+  --popover-foreground: #e8f0ff;
   --primary: var(--cyan);
-  --primary-foreground: #04050a;
+  --primary-foreground: #05070d;
   --secondary: var(--violet);
-  --secondary-foreground: #04050a;
-  --muted: #0f1320;
-  --muted-foreground: #9fb0d0;
+  --secondary-foreground: #05070d;
+  --muted: #131926;
+  --muted-foreground: #9db0ce;
   --accent: var(--acid);
-  --accent-foreground: #04050a;
+  --accent-foreground: #05070d;
   --destructive: var(--magenta);
-  --border: color-mix(in oklch, var(--cyan) 16%, transparent);
+  --border: #1e2636;
   --input: color-mix(in oklch, var(--cyan) 22%, transparent);
   --ring: var(--cyan);
 }
@@ -91,10 +97,14 @@
   --color-acid: var(--acid);
   --color-magenta: var(--magenta);
   --color-amber: var(--amber);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-text-low: var(--text-low);
 
-  --font-sans: var(--font-space-mono);
+  --font-sans: var(--font-grotesk);
   --font-mono: var(--font-space-mono);
-  --font-display: var(--font-orbitron);
+  --font-display: var(--font-grotesk);
+  --font-body: var(--font-newsreader);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -112,7 +122,7 @@
      — the single largest main-thread cost on the site, and unusable on mobile. */
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-space-mono), ui-monospace, monospace;
+    font-family: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
     background-image:
       radial-gradient(
         circle at 15% 0%,
@@ -138,8 +148,8 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-orbitron), var(--font-space-mono), sans-serif;
-    letter-spacing: 0.02em;
+    font-family: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.015em;
   }
 
   ::selection {
@@ -166,18 +176,18 @@
 
 @layer utilities {
   /* Neon text/box glows */
+  /* A halo, not a neon sign. The old two-layer glow at 70%/40% was the
+     loudest remaining sci-fi tell, and it fought the serif body copy. */
   .text-glow-cyan {
-    text-shadow: 0 0 8px color-mix(in oklch, var(--cyan) 70%, transparent),
-      0 0 20px color-mix(in oklch, var(--cyan) 40%, transparent);
+    text-shadow: 0 0 18px color-mix(in oklch, var(--cyan) 26%, transparent);
   }
   .text-glow-violet {
-    text-shadow: 0 0 8px color-mix(in oklch, var(--violet) 70%, transparent),
-      0 0 20px color-mix(in oklch, var(--violet) 40%, transparent);
+    text-shadow: 0 0 18px color-mix(in oklch, var(--violet) 26%, transparent);
   }
   .panel {
     background: color-mix(in oklch, var(--void-panel) 80%, transparent);
     backdrop-filter: blur(8px);
-    border: 1px solid color-mix(in oklch, var(--cyan) 18%, transparent);
+    border: 1px solid var(--line);
   }
   .glow-border-cyan {
     border: 1px solid color-mix(in oklch, var(--cyan) 35%, transparent);

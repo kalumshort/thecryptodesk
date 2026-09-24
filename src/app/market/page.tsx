@@ -99,7 +99,7 @@ export default async function MarketPage() {
           <StatCard
             label="Tracked Coins"
             value={`${coins.length}`}
-            accent="var(--acid)"
+            accent="var(--cyan)"
           />
         </div>
       ) : null}

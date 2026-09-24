@@ -39,7 +39,7 @@ export default function ContactPage() {
   return (
     <StaticPage
       title="Contact"
-      accent="var(--acid)"
+      accent="var(--cyan)"
       intro="Corrections, questions, takedown requests and press."
     >
       <PostBody content={CONTENT} />

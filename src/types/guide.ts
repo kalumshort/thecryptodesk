@@ -14,9 +14,9 @@ export const LEVEL_LABELS: Record<Level, string> = {
 
 /** Accent color per level (palette vars), used for headings and badges. */
 export const LEVEL_COLOR: Record<Level, string> = {
-  beginner: "var(--acid)",
-  intermediate: "var(--cyan)",
-  advanced: "var(--violet)",
+  beginner: "var(--cyan)",
+  intermediate: "var(--violet)",
+  advanced: "var(--amber)",
 };
 
 export function isLevel(value: string): value is Level {
