@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Sparkline } from "@/components/sparkline";
 import {
   getTopCoins,
@@ -7,7 +8,8 @@ import {
   formatCompactUsd,
   formatPercent,
 } from "@/lib/coingecko";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultOgImages } from "@/lib/seo";
+import { Diamond } from "@/components/diamond";
 
 export const revalidate = 60;
 
@@ -16,6 +18,12 @@ export const metadata: Metadata = {
   description:
     "Live cryptocurrency prices, market caps, 24h and 7d changes for the top coins by market capitalisation.",
   alternates: { canonical: absoluteUrl("/market") },
+  openGraph: {
+    type: "website",
+    url: absoluteUrl("/market"),
+    title: "Crypto Market Prices",
+    images: defaultOgImages(),
+  },
 };
 
 function ChangeCell({ value }: { value: number }) {
@@ -64,7 +72,8 @@ export default async function MarketPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-8 flex items-center gap-4">
         <h1 className="font-display text-2xl font-extrabold uppercase tracking-[0.25em] text-cyan text-glow-cyan">
-          ◆ Markets
+          <Diamond className="mr-1.5" />
+          Markets
         </h1>
         <span className="h-px flex-1 bg-gradient-to-r from-cyan to-transparent" />
       </div>
@@ -129,13 +138,15 @@ export default async function MarketPage() {
                   <td className="px-3 py-3 text-muted-foreground">{c.rank}</td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      {/* `unoptimized`: this table renders up to 50 rows, so
+                          optimizing would fire 50 `/_next/image` requests per
+                          page view at a backend capped at 2 instances. */}
+                      <Image
                         src={c.image}
                         alt=""
                         width={20}
                         height={20}
-                        loading="lazy"
+                        unoptimized
                         className="h-5 w-5 rounded-full"
                       />
                       <span className="font-bold text-foreground">{c.name}</span>

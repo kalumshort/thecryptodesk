@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostBody } from "@/components/post-body";
 import { GLOSSARY, getTerm } from "@/lib/glossary";
-import { absoluteUrl, SITE_NAME } from "@/lib/seo";
+import { absoluteUrl, breadcrumbJsonLd, organizationId } from "@/lib/seo";
+import { Diamond } from "@/components/diamond";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -36,10 +38,17 @@ export default async function GlossaryTermPage({ params }: Params) {
     "@type": "DefinedTerm",
     name: term.term,
     description: term.short,
-    inDefinedTermSet: absoluteUrl("/glossary"),
+    // Points at the DefinedTermSet node emitted on /glossary.
+    inDefinedTermSet: { "@id": `${absoluteUrl("/glossary")}#termset` },
     url: absoluteUrl(`/glossary/${term.slug}`),
-    publisher: { "@type": "Organization", name: SITE_NAME },
+    publisher: { "@id": organizationId() },
   };
+
+  const crumbs = [
+    { name: "Home", path: "/" },
+    { name: "Glossary", path: "/glossary" },
+    { name: term.term, path: `/glossary/${term.slug}` },
+  ];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -47,13 +56,14 @@ export default async function GlossaryTermPage({ params }: Params) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd(crumbs)),
+        }}
+      />
 
-      <Link
-        href="/glossary"
-        className="text-[10px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-cyan"
-      >
-        ← Glossary
-      </Link>
+      <Breadcrumbs items={crumbs} />
 
       <h1 className="mt-3 mb-2 font-display text-3xl font-extrabold uppercase tracking-wide text-cyan text-glow-cyan">
         {term.term}
@@ -67,7 +77,8 @@ export default async function GlossaryTermPage({ params }: Params) {
       {related.length > 0 ? (
         <div className="mt-12 border-t border-cyan/15 pt-6">
           <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-violet text-glow-violet">
-            ◆ Related terms
+            <Diamond className="mr-1.5" />
+            Related terms
           </h2>
           <div className="flex flex-wrap gap-2">
             {related.map((r) => (

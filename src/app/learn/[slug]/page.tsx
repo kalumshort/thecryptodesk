@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostBody } from "@/components/post-body";
 import { getAllGuideSlugs, getGuideBySlug, getGuidesByLevel } from "@/lib/guides";
-import { absoluteUrl, SITE_NAME } from "@/lib/seo";
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  organizationId,
+  SITE_NAME,
+} from "@/lib/seo";
+import { Breadcrumbs } from "@/components/breadcrumbs";
+import { extractFaq, faqPageJsonLd } from "@/lib/faq";
 import { formatDate } from "@/lib/format";
 import { LEVEL_COLOR, LEVEL_LABELS, type Guide } from "@/types/guide";
+import { Diamond } from "@/components/diamond";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -52,7 +61,10 @@ function learningResourceJsonLd(guide: Guide) {
     datePublished: guide.publishedAt,
     dateModified: guide.updatedAt,
     url: absoluteUrl(`/learn/${guide.slug}`),
-    publisher: { "@type": "Organization", name: SITE_NAME },
+    // Reference the site-wide Organization node so the publisher carries the
+    // logo required for rich results, instead of a bare name.
+    publisher: { "@id": organizationId() },
+    author: { "@id": organizationId() },
     keywords: guide.keywords.join(", "),
   };
 }
@@ -70,14 +82,37 @@ export default async function GuidePage({ params }: Params) {
   const prev = idx > 0 ? siblings[idx - 1] : null;
   const next = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
 
+  const crumbs = [
+    { name: "Home", path: "/" },
+    { name: "Learn", path: "/learn" },
+    { name: guide.title, path: `/learn/${guide.slug}` },
+  ];
+
+  // Only emitted when the guide genuinely contains question-form sections.
+  const faq = faqPageJsonLd(extractFaq(guide.content));
+
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd(crumbs)),
+        }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(learningResourceJsonLd(guide)),
         }}
       />
+      {faq ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }}
+        />
+      ) : null}
+
+      <Breadcrumbs items={crumbs} />
 
       <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-widest">
         <Link
@@ -85,7 +120,8 @@ export default async function GuidePage({ params }: Params) {
           className="font-display font-bold"
           style={{ color: accent, textShadow: `0 0 10px ${accent}` }}
         >
-          ◆ {LEVEL_LABELS[guide.level]}
+          <Diamond className="mr-1.5" />
+          {LEVEL_LABELS[guide.level]}
         </Link>
         <span className="text-muted-foreground">
           {guide.readingTimeMinutes}m read
@@ -104,10 +140,15 @@ export default async function GuidePage({ params }: Params) {
       </p>
 
       {guide.coverImage ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={guide.coverImage}
-          alt=""
+          // Not decorative — this is the guide's main illustration, and it was
+          // previously shipping with an empty alt.
+          alt={guide.title}
+          width={1200}
+          height={675}
+          sizes="(max-width: 799px) 100vw, 736px"
+          preload
           className="mt-8 aspect-[16/9] w-full rounded-md object-cover glow-border-cyan"
         />
       ) : null}
@@ -120,8 +161,16 @@ export default async function GuidePage({ params }: Params) {
 
       <footer className="text-xs leading-relaxed text-muted-foreground">
         <p>
-          ◆ Educational guide · always do your own research · not financial
-          advice.
+          <Diamond className="mr-1.5" />
+          Educational guide · always do your own research · not financial
+          advice. How these are written:{" "}
+          <Link
+            href="/editorial-policy"
+            className="text-foreground/80 transition-colors hover:text-cyan"
+          >
+            editorial policy
+          </Link>
+          .
         </p>
         {guide.tags.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
