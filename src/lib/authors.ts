@@ -1,9 +1,13 @@
 /**
  * Content authors / editorial entities. Surfaced as a byline, an `/author`
- * profile page, and JSON-LD `author` for E-E-A-T. The site openly discloses AI
- * synthesis, so this models an honest editorial desk — not a fabricated human
- * persona. Per-post author attribution can be added later by storing an author
- * slug on each post; for now every post is by the editorial desk.
+ * profile page, and JSON-LD `author` for E-E-A-T. This models an honest
+ * editorial desk — not a fabricated human persona. Per-post author attribution
+ * can be added later by storing an author slug on each post; for now every post
+ * is by the editorial desk.
+ *
+ * `bio` is also emitted verbatim inside the ProfilePage JSON-LD via
+ * `authorJsonLd`, so edits here change structured data too. Details of how
+ * articles are produced live on /editorial-policy rather than in this blurb.
  */
 export interface Author {
   slug: string;
@@ -23,13 +27,18 @@ export const EDITORIAL: Author = {
   name: "TheCryptoDesk Editorial",
   role: "Editorial Desk · Cryptocurrency News",
   bio:
-    "The TheCryptoDesk editorial desk curates and synthesises cryptocurrency " +
-    "news from established industry sources into clear, factual reports. Every " +
-    "article preserves the source's specific figures, names, and dates, adds " +
+    "The TheCryptoDesk editorial desk condenses cryptocurrency news from " +
+    "established industry publications into clear, factual reports. Every " +
+    "article preserves the source's specific figures, names and dates, adds " +
     "plain-language context on why it matters, and links back to the original " +
-    "reporting. Articles are drafted with AI assistance under editorial " +
-    "guidelines that treat facts as non-negotiable.",
+    "reporting so readers can check it for themselves. Facts are treated as " +
+    "non-negotiable: figures are never rounded away, named entities are never " +
+    "generalised, and nothing is invented.",
   url: "/author/editorial",
+  links: [
+    { label: "Editorial policy", href: "/editorial-policy" },
+    { label: "Contact", href: "/contact" },
+  ],
 };
 
 const AUTHORS: Record<string, Author> = {
