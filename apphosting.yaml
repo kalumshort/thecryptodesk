@@ -33,22 +33,28 @@ env:
       - BUILD
       - RUNTIME
 
-  # Google Search Console ownership token (the `content` value from the
-  # "HTML tag" verification method, without the surrounding <meta> markup).
-  # Emitted as <meta name="google-site-verification"> from the root layout.
-  - variable: NEXT_PUBLIC_GSC_VERIFICATION
-    value: ""
-    availability:
-      - BUILD
-      - RUNTIME
-
-  # GA4 measurement ID (G-XXXXXXXXXX). Leave empty to disable analytics
-  # entirely — the script is not rendered when this is unset.
-  - variable: NEXT_PUBLIC_GA_ID
-    value: ""
-    availability:
-      - BUILD
-      - RUNTIME
+  # Analytics and Search Console are OPT-IN and intentionally absent here.
+  # The app treats an unset variable as "disabled": no gtag script is rendered
+  # without NEXT_PUBLIC_GA_ID, and no verification meta tag without
+  # NEXT_PUBLIC_GSC_VERIFICATION. Do NOT add them back with `value: ""` --
+  # App Hosting reads an empty value as no value at all and rejects the whole
+  # file with "either 'value' or 'secret' field is required".
+  #
+  # To enable, uncomment and supply the real value:
+  #
+  # - variable: NEXT_PUBLIC_GA_ID
+  #   value: G-XXXXXXXXXX
+  #   availability:
+  #     - BUILD
+  #     - RUNTIME
+  #
+  # Only needed if verifying Search Console by HTML tag rather than DNS TXT:
+  #
+  # - variable: NEXT_PUBLIC_GSC_VERIFICATION
+  #   value: your-verification-token
+  #   availability:
+  #     - BUILD
+  #     - RUNTIME
 
   # Example of how to wire a Secret Manager secret into the runtime if you
   # ever need one (not required: Vertex AI + Admin SDK use the runtime
