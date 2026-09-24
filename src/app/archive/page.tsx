@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getArchiveIndex } from "@/lib/posts";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, defaultOgImages } from "@/lib/seo";
 import { formatMonth } from "@/lib/format";
+import { Diamond } from "@/components/diamond";
 
 export const revalidate = 3600;
 
@@ -10,6 +11,12 @@ export const metadata: Metadata = {
   title: "Archive",
   description: "Browse the full TheCryptoDesk news archive by month.",
   alternates: { canonical: absoluteUrl("/archive") },
+  openGraph: {
+    type: "website",
+    url: absoluteUrl("/archive"),
+    title: "Archive",
+    images: defaultOgImages(),
+  },
 };
 
 export default async function ArchivePage() {
@@ -28,7 +35,8 @@ export default async function ArchivePage() {
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="mb-8 flex items-center gap-4">
         <h1 className="font-display text-2xl font-extrabold uppercase tracking-[0.25em] text-cyan text-glow-cyan">
-          ◆ Archive
+          <Diamond className="mr-1.5" />
+          Archive
         </h1>
         <span className="h-px flex-1 bg-gradient-to-r from-cyan/60 to-transparent" />
       </div>
