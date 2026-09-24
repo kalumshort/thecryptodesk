@@ -2,9 +2,9 @@ import Link from "next/link";
 import { Diamond } from "@/components/diamond";
 
 /**
- * The site's standard section heading: a `◆`-prefixed display-face label followed by
- * a fading hairline. Pass `accent` for a category-colored, glowing label and
- * `href` to make the label a link (e.g. category sections → their category page).
+ * The site's standard section heading: a `◆`-prefixed display-face label, a
+ * fading hairline, and an optional "view all" at the far right. Pass `accent`
+ * for a category-colored label and `href` for the section's own page.
  *
  * The `<h2>` is always rendered — when `href` is set the link goes *inside* the
  * heading. Previously the linked variant emitted a bare `<Link>`, so the
@@ -14,10 +14,12 @@ export function SectionHeading({
   label,
   accent,
   href,
+  viewAllLabel = "View all",
 }: {
   label: string;
   accent?: string;
   href?: string;
+  viewAllLabel?: string;
 }) {
   const labelClass =
     "font-display text-sm font-bold uppercase tracking-[0.3em] whitespace-nowrap";
@@ -43,6 +45,14 @@ export function SectionHeading({
           background: `linear-gradient(to right, ${accent ?? "var(--cyan)"}, transparent)`,
         }}
       />
+      {href ? (
+        <Link
+          href={href}
+          className="whitespace-nowrap font-mono text-[11px] uppercase tracking-widest text-text-low transition-colors hover:text-cyan"
+        >
+          {viewAllLabel}
+        </Link>
+      ) : null}
     </div>
   );
 }

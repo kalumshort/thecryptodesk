@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
-import { Sidebar } from "@/components/sidebar";
+import { HomeHero } from "@/components/home-hero";
+import { MarketsBand } from "@/components/markets-band";
+import { GuideStrip } from "@/components/guide-strip";
 import { getLatestPosts, getPostsByCategory } from "@/lib/posts";
-import { popularTags } from "@/lib/tags";
 import { CATEGORIES, CATEGORY_LABELS } from "@/types/post";
 import { CATEGORY_COLOR } from "@/lib/category-style";
 import {
@@ -42,7 +42,7 @@ export default async function HomePage() {
     Promise.all(
       CATEGORIES.map(async (category) => ({
         category,
-        posts: await getPostsByCategory(category, 3),
+        posts: await getPostsByCategory(category, 5),
       })),
     ),
   ]);
@@ -61,12 +61,14 @@ export default async function HomePage() {
     );
   }
 
-  const [lead, ...rest] = posts;
-  const leadAccent = CATEGORY_COLOR[lead.category];
+  // Lead, the four headlines beside it, then the rest of the river.
+  const [lead, ...others] = posts;
+  const rail = others.slice(0, 4);
+  const river = others.slice(4);
   const sections = categorySections.filter((s) => s.posts.length > 0);
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="mx-auto max-w-6xl px-4 py-8">
       {/* Describes the homepage as the ordered list of stories it actually is. */}
       <script
         type="application/ld+json"
@@ -84,75 +86,71 @@ export default async function HomePage() {
           ),
         }}
       />
-      <div className="min-w-0">
-        {/* Lead story */}
-        <section className="mb-12">
-          <Link
-            href={`/news/${lead.slug}`}
-            className="group grid gap-6 overflow-hidden rounded-md panel md:min-h-[22rem] md:grid-cols-2"
-            style={{ ["--accent" as string]: leadAccent }}
-          >
-            <div className="relative aspect-[16/9] overflow-hidden md:aspect-auto">
-              <Image
-                src={lead.coverImage || "/placeholder-cover.svg"}
-                alt=""
-                fill
-                sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 380px"
-                // The lead story image is the LCP element at every viewport and
-                // is the only above-the-fold image, so preloading it is safe.
-                preload
-                className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105"
+
+      <HomeHero lead={lead} rail={rail} />
+
+      <MarketsBand />
+
+      {river.length > 0 ? (
+        <>
+          <SectionHeading label="Latest" href="/archive" />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {river.map((post, i) => (
+              <PostCard
+                key={post.slug}
+                post={post}
+                // One wide card per row of six breaks the grid's monotony and
+                // gives the eye somewhere to land.
+                variant={i === 0 ? "featured" : "default"}
+                className={i === 0 ? "sm:col-span-2" : undefined}
               />
-              <span className="absolute inset-0 bg-gradient-to-t from-void/80 to-transparent" />
-            </div>
-            <div className="flex flex-col justify-center p-6 md:p-8">
-              <p
-                className="font-display text-xs font-bold uppercase tracking-[0.3em]"
-                style={{ color: leadAccent, textShadow: `0 0 12px ${leadAccent}` }}
-              >
-                ◆ Top story // {CATEGORY_LABELS[lead.category]}
-              </p>
-              <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-wide transition-colors group-hover:text-cyan sm:text-4xl">
-                {lead.title}
-              </h1>
-              <p className="mt-4 leading-relaxed text-muted-foreground">
-                {lead.excerpt}
-              </p>
-            </div>
-          </Link>
-        </section>
+            ))}
+          </div>
+        </>
+      ) : null}
 
-        {/* Latest news */}
-        <SectionHeading label="Latest News" />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {rest.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-
-        {/* Per-category sections */}
-        {sections.map(({ category, posts: catPosts }) => (
+      {/* Per-category sections: a lead story beside a ranked list, rather than
+          another row of identical cards. */}
+      {sections.map(({ category, posts: catPosts }) => {
+        const [catLead, ...catRest] = catPosts;
+        const accent = CATEGORY_COLOR[category];
+        return (
           <section key={category} className="mt-14">
             <SectionHeading
               label={CATEGORY_LABELS[category]}
-              accent={CATEGORY_COLOR[category]}
+              accent={accent}
               href={`/category/${category}`}
             />
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {catPosts.map((post, i) => (
-                <PostCard
-                  key={post.slug}
-                  post={post}
-                  variant={i === 0 ? "featured" : "default"}
-                  className={i === 0 ? "sm:col-span-2" : undefined}
-                />
-              ))}
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <PostCard post={catLead} variant="lead" />
+              {catRest.length > 0 ? (
+                <ol className="flex flex-col overflow-hidden rounded-md panel">
+                  {catRest.map((post, i) => (
+                    <li key={post.slug} className="flex-1">
+                      <Link
+                        href={`/news/${post.slug}`}
+                        className="group flex h-full items-start gap-4 border-b border-border px-5 py-4 transition-colors hover:bg-cyan/5"
+                      >
+                        <span
+                          aria-hidden
+                          className="font-mono text-xl font-bold leading-none text-border"
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="font-display text-base font-semibold leading-snug text-foreground transition-colors group-hover:text-cyan">
+                          {post.title}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
             </div>
           </section>
-        ))}
-      </div>
+        );
+      })}
 
-      <Sidebar latest={posts} tags={popularTags(posts)} />
+      <GuideStrip />
     </div>
   );
 }
