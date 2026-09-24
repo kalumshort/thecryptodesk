@@ -1,21 +1,47 @@
+"use client";
+
 import Link from "next/link";
-import { getTopCoins, formatPrice, formatPercent } from "@/lib/coingecko";
+import { useEffect, useState } from "react";
+import { formatPrice, formatPercent } from "@/lib/coingecko";
 
 /**
- * Site-wide live price strip. Server component: fetches the top coins (cached at
- * the fetch layer) and renders a seamless CSS marquee. The track is duplicated so
- * the loop has no visible seam. The coins are non-interactive and a single pinned
- * "Live Prices" link points to /market — previously every coin (×2 tracks) was a
- * separate /market link, ~28 duplicates diluting the page's internal links.
- * Renders nothing if CoinGecko is unavailable.
+ * Site-wide live price strip.
+ *
+ * Client component by design: this used to be an async server component that
+ * awaited CoinGecko in the root layout, which pulled every route's effective
+ * ISR window down to the coin fetch's 60s (see `src/app/api/ticker/route.ts`).
+ * Fetching from the browser keeps the price cadence without touching any
+ * page's cache lifetime.
+ *
+ * The strip sits directly above `<main>`, so its height is hard-locked at 30px
+ * and the shell always renders — an empty or failed fetch must not collapse it,
+ * or every page on the site gets a layout shift.
  */
-export async function MarketTicker() {
-  const coins = await getTopCoins(14);
-  if (coins.length === 0) return null;
+
+/** Trimmed coin shape returned by `/api/ticker`. */
+interface TickerCoin {
+  id: string;
+  symbol: string;
+  price: number;
+  change24h: number;
+}
+
+export function MarketTicker() {
+  const [coins, setCoins] = useState<TickerCoin[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/ticker", { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: TickerCoin[]) => setCoins(data))
+      // Abort on unmount and CoinGecko outages both land here: keep the empty
+      // strip rather than surfacing an error in the chrome of every page.
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   const items = coins.map((c) => {
     const up = c.change24h >= 0;
-    const color = up ? "var(--acid)" : "var(--magenta)";
     return (
       <span
         key={c.id}
@@ -25,14 +51,16 @@ export async function MarketTicker() {
           {c.symbol}
         </span>
         <span className="text-muted-foreground">{formatPrice(c.price)}</span>
-        <span style={{ color }}>{formatPercent(c.change24h)}</span>
+        <span style={{ color: up ? "var(--acid)" : "var(--magenta)" }}>
+          {formatPercent(c.change24h)}
+        </span>
       </span>
     );
   });
 
   return (
     <div
-      className="relative flex w-full items-stretch overflow-hidden border-b border-cyan/15 backdrop-blur"
+      className="relative flex h-[30px] w-full items-stretch overflow-hidden border-b border-cyan/15 backdrop-blur"
       style={{
         background: "color-mix(in oklch, var(--void-panel) 70%, transparent)",
       }}
@@ -43,13 +71,16 @@ export async function MarketTicker() {
       >
         Live&nbsp;Prices
       </Link>
-      <div className="relative flex-1 overflow-hidden py-1.5">
-        <div className="flex w-max animate-ticker hover:[animation-play-state:paused]">
-          <div className="flex shrink-0">{items}</div>
-          <div className="flex shrink-0" aria-hidden>
-            {items}
+      <div className="relative flex flex-1 items-center overflow-hidden">
+        {items.length > 0 ? (
+          <div className="flex w-max animate-ticker hover:[animation-play-state:paused]">
+            <div className="flex shrink-0">{items}</div>
+            {/* Duplicate track so the marquee loop has no visible seam. */}
+            <div className="flex shrink-0" aria-hidden>
+              {items}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );
