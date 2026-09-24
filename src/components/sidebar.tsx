@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/format";
 import { FearGreedWidget } from "@/components/fear-greed-widget";
 import { TrendingWidget } from "@/components/trending-widget";
 import { CATEGORIES, CATEGORY_LABELS, type Post } from "@/types/post";
+import { Diamond } from "@/components/diamond";
 
 /**
  * Homepage / article-page sidebar: a compact "Trending" list of recent posts and
@@ -23,7 +24,8 @@ export function Sidebar({
       {trending.length > 0 ? (
         <div className="rounded-md panel p-5">
           <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-cyan text-glow-cyan">
-            ◆ Trending
+            <Diamond className="mr-1.5" />
+            Trending
           </h2>
           <ul className="flex flex-col gap-4">
             {trending.map((post) => (
@@ -63,7 +65,8 @@ export function Sidebar({
       {tags.length > 0 ? (
         <div className="rounded-md panel p-5">
           <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-violet text-glow-violet">
-            ◆ Popular tags
+            <Diamond className="mr-1.5" />
+            Popular tags
           </h2>
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
@@ -81,7 +84,8 @@ export function Sidebar({
 
       <nav className="rounded-md panel p-5" aria-label="Browse categories">
         <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-cyan text-glow-cyan">
-          ◆ Browse
+          <Diamond className="mr-1.5" />
+          Browse
         </h2>
         <ul className="flex flex-col gap-2">
           {CATEGORIES.map((cat) => (

@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Compiled Cloud Functions output. `tsconfig.json` already excludes
+    // `functions/`, but eslint was still linting the emitted JS and reporting
+    // ~34 unfixable errors, which made `npm run lint` useless as a gate.
+    "functions/lib/**",
   ]),
 ]);
 

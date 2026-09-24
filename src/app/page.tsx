@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { PostCard } from "@/components/post-card";
 import { SectionHeading } from "@/components/section-heading";
@@ -6,10 +8,33 @@ import { getLatestPosts, getPostsByCategory } from "@/lib/posts";
 import { popularTags } from "@/lib/tags";
 import { CATEGORIES, CATEGORY_LABELS } from "@/types/post";
 import { CATEGORY_COLOR } from "@/lib/category-style";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  absoluteUrl,
+  collectionPageJsonLd,
+} from "@/lib/seo";
 
 // Revalidate the homepage every 5 minutes so newly ingested posts appear
 // without a redeploy, while still serving cached SSR HTML to crawlers.
 export const revalidate = 300;
+
+// The homepage is the site's highest-authority URL, so it gets an explicit
+// title (not the layout's template default) and its own canonical.
+export const metadata: Metadata = {
+  // `absolute` opts out of the "%s · TheCryptoDesk" template, which would
+  // otherwise double the brand name on the one page that least needs it.
+  title: { absolute: `${SITE_NAME} — Cryptocurrency News, Prices & Analysis` },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: absoluteUrl("/") },
+  openGraph: {
+    type: "website",
+    url: absoluteUrl("/"),
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — Cryptocurrency News, Prices & Analysis`,
+    description: SITE_DESCRIPTION,
+  },
+};
 
 export default async function HomePage() {
   const [posts, categorySections] = await Promise.all([
@@ -26,10 +51,11 @@ export default async function HomePage() {
     return (
       <div className="mx-auto max-w-6xl px-4 py-24 text-center">
         <h1 className="font-display text-2xl font-bold uppercase tracking-widest text-cyan text-glow-cyan">
-          No signal
+          {SITE_NAME}
         </h1>
+        {/* User-facing empty state: no internal tooling, no jargon. */}
         <p className="mt-3 text-sm text-muted-foreground">
-          The mesh is empty. Run the ingest function to synthesise posts.
+          No articles have been published yet. Check back shortly.
         </p>
       </div>
     );
@@ -41,6 +67,23 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+      {/* Describes the homepage as the ordered list of stories it actually is. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            collectionPageJsonLd({
+              name: `${SITE_NAME} — Cryptocurrency News`,
+              description: SITE_DESCRIPTION,
+              path: "/",
+              items: posts.map((p) => ({
+                name: p.title,
+                path: `/news/${p.slug}`,
+              })),
+            }),
+          ),
+        }}
+      />
       <div className="min-w-0">
         {/* Lead story */}
         <section className="mb-12">
@@ -49,12 +92,16 @@ export default async function HomePage() {
             className="group grid gap-6 overflow-hidden rounded-md panel md:min-h-[22rem] md:grid-cols-2"
             style={{ ["--accent" as string]: leadAccent }}
           >
-            <div className="relative overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative aspect-[16/9] overflow-hidden md:aspect-auto">
+              <Image
                 src={lead.coverImage || "/placeholder-cover.svg"}
-                alt={lead.title}
-                className="aspect-[16/9] h-full w-full object-cover opacity-85 transition-transform duration-700 group-hover:scale-105 md:aspect-auto"
+                alt=""
+                fill
+                sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 380px"
+                // The lead story image is the LCP element at every viewport and
+                // is the only above-the-fold image, so preloading it is safe.
+                preload
+                className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105"
               />
               <span className="absolute inset-0 bg-gradient-to-t from-void/80 to-transparent" />
             </div>

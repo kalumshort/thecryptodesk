@@ -1,4 +1,5 @@
 import { getFearGreed, fearGreedColor } from "@/lib/sentiment";
+import { Diamond } from "@/components/diamond";
 
 const R = 40;
 const ARC_LENGTH = Math.PI * R; // length of the top semicircle path
@@ -18,7 +19,8 @@ export async function FearGreedWidget() {
   return (
     <div className="rounded-md panel p-5">
       <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-[0.3em] text-acid [text-shadow:0_0_10px_var(--acid)]">
-        ◆ Fear &amp; Greed
+        <Diamond className="mr-1.5" />
+        Fear &amp; Greed
       </h2>
       <div className="flex flex-col items-center">
         <svg viewBox="0 0 100 56" className="w-full max-w-[180px]">

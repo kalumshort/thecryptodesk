@@ -22,6 +22,28 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   market: "Markets",
 };
 
+/**
+ * Hand-written intro copy for each category hub.
+ *
+ * Category pages previously had nothing but a one-word heading and a grid of
+ * cards — no indexable prose at all, which is why they had nothing to rank on.
+ * These also feed each hub's meta description.
+ */
+export const CATEGORY_INTROS: Record<Category, string> = {
+  bitcoin:
+    "Bitcoin news: price moves and what drove them, spot ETF flows, mining and hashrate, institutional and treasury buying, and the protocol changes that matter. Every report links back to the original source.",
+  ethereum:
+    "Ethereum news: protocol upgrades and their timelines, staking and validator economics, layer-2 rollups and fees, ETH price action, and the applications being built on top.",
+  altcoins:
+    "Coverage of everything outside Bitcoin and Ethereum — Solana, XRP, Cardano and the rest. Launches, upgrades, listings, token unlocks and the price moves that follow.",
+  defi: "Decentralised finance: lending and borrowing protocols, decentralised exchanges, stablecoins, yield and liquidity, total value locked, and the exploits and failures worth learning from.",
+  nft: "NFTs and digital collectibles: marketplace volumes, notable collections and mints, gaming and metaverse assets, royalties, and the shifting economics of the space.",
+  regulation:
+    "Crypto regulation and policy: SEC and CFTC enforcement, legislation and rulemaking, court decisions, tax treatment, and how rules differ across the US, EU, UK and Asia.",
+  market:
+    "Crypto market analysis: total market capitalisation, Bitcoin dominance, volatility and liquidations, ETF and institutional flows, and the macro backdrop moving digital assets.",
+};
+
 export function isCategory(value: string): value is Category {
   return (CATEGORIES as readonly string[]).includes(value);
 }

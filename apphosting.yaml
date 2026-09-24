@@ -3,17 +3,49 @@
 
 runConfig:
   # Keep at least one warm instance for fast SSR / good SEO crawl response.
-  minInstances: 0
+  # Cold starts directly cost crawl budget on a site that publishes hourly.
+  minInstances: 1
   maxInstances: 2
-  concurrency: 80
+  # Lowered from 80 alongside enabling the Next image optimizer: sharp decodes
+  # a full-size cover to raw RGBA before encoding, so concurrent optimizations
+  # are the memory spike this instance is most likely to die on.
+  concurrency: 40
   cpu: 1
-  memoryMiB: 512
+  # Raised from 512. The optimizer's on-disk cache (`.next/cache/images`) is
+  # tmpfs on Cloud Run and counts against this limit, on top of sharp's own
+  # working set.
+  memoryMiB: 1024
 
 env:
+  # Caps glibc's per-thread malloc arenas. sharp fragments heap badly under the
+  # default on Cloud Run's glibc image, which shows up as gradual RSS growth and
+  # eventual OOM kills rather than an obvious crash.
+  - variable: MALLOC_ARENA_MAX
+    value: "2"
+    availability:
+      - RUNTIME
+
   # Public site URL — used to build canonical URLs, the sitemap and robots.txt.
   # Change this to your real domain once deployed.
   - variable: NEXT_PUBLIC_SITE_URL
     value: https://thecryptodesk.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Google Search Console ownership token (the `content` value from the
+  # "HTML tag" verification method, without the surrounding <meta> markup).
+  # Emitted as <meta name="google-site-verification"> from the root layout.
+  - variable: NEXT_PUBLIC_GSC_VERIFICATION
+    value: ""
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # GA4 measurement ID (G-XXXXXXXXXX). Leave empty to disable analytics
+  # entirely — the script is not rendered when this is unset.
+  - variable: NEXT_PUBLIC_GA_ID
+    value: ""
     availability:
       - BUILD
       - RUNTIME

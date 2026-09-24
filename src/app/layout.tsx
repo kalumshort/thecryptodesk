@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { Orbitron, Space_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { MarketTicker } from "@/components/market-ticker";
 import { SiteFooter } from "@/components/site-footer";
-import { NeuralMesh } from "@/components/neural-mesh";
-import { DiamondCursor } from "@/components/diamond-cursor";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -15,11 +14,13 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 
-// Display: Orbitron — cold, geometric, precise.
+// Display: Orbitron — cold, geometric, precise. Only 700/800 are actually used
+// (`font-bold` / `font-extrabold`); the other four weights were dead payload.
 const orbitron = Orbitron({
   variable: "--font-orbitron",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["700", "800"],
+  display: "swap",
 });
 
 // Body: Space Mono — biological, mechanical.
@@ -28,6 +29,11 @@ const spaceMono = Space_Mono({
   subsets: ["latin"],
   weight: ["400", "700"],
 });
+
+// Analytics / verification are opt-in via env so local dev and preview builds
+// stay silent — no GA hits, no stray verification tag.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+const GSC_VERIFICATION = process.env.NEXT_PUBLIC_GSC_VERIFICATION;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -46,6 +52,9 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
   },
   twitter: { card: "summary_large_image" },
+  // Search Console ownership. Omitted entirely when the env var is unset so we
+  // never emit an empty verification meta tag.
+  verification: GSC_VERIFICATION ? { google: GSC_VERIFICATION } : undefined,
 };
 
 export default function RootLayout({
@@ -63,22 +72,16 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {/* Site-wide structured data: publisher identity + site entity. */}
-        {/* eslint-disable-next-line react/no-danger */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationJsonLd()),
           }}
         />
-        {/* eslint-disable-next-line react/no-danger */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
         />
-
-        {/* Living mycelial background + diamond cursor */}
-        <NeuralMesh />
-        <DiamondCursor />
 
         <div className="relative z-10 flex min-h-full flex-col">
           <SiteHeader />
@@ -87,6 +90,7 @@ export default function RootLayout({
           <SiteFooter />
         </div>
       </body>
+      {GA_ID ? <GoogleAnalytics gaId={GA_ID} /> : null}
     </html>
   );
 }

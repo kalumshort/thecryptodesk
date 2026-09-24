@@ -5,6 +5,7 @@ import type {
   Timestamp,
 } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { stripMarkdown } from "@/lib/markdown";
 import { LEVEL_RANK, type Guide, type Level } from "@/types/guide";
 
 const GUIDES = "guides";
@@ -22,8 +23,9 @@ function mapGuide(doc: QueryDocumentSnapshot<DocumentData>): Guide {
   const d = doc.data();
   return {
     slug: (d.slug as string) ?? doc.id,
-    title: d.title ?? "",
-    excerpt: d.excerpt ?? "",
+    title: stripMarkdown(d.title ?? ""),
+    // Plain-text surfaces (cards, meta tags) must not show raw Markdown.
+    excerpt: stripMarkdown(d.excerpt ?? ""),
     content: d.content ?? "",
     level: d.level ?? "beginner",
     topic: d.topic ?? "",
@@ -34,8 +36,8 @@ function mapGuide(doc: QueryDocumentSnapshot<DocumentData>): Guide {
     publishedAt: toIso(d.publishedAt),
     updatedAt: toIso(d.updatedAt ?? d.publishedAt),
     readingTimeMinutes: d.readingTimeMinutes ?? 1,
-    metaTitle: d.metaTitle ?? d.title ?? "",
-    metaDescription: d.metaDescription ?? d.excerpt ?? "",
+    metaTitle: stripMarkdown(d.metaTitle ?? d.title ?? ""),
+    metaDescription: stripMarkdown(d.metaDescription ?? d.excerpt ?? ""),
     keywords: Array.isArray(d.keywords) ? d.keywords : [],
     aiModel: d.aiModel ?? "",
   };
