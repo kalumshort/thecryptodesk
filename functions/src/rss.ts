@@ -10,7 +10,7 @@ type CustomItem = {
 
 const parser: Parser<unknown, CustomItem> = new Parser({
   timeout: 15000,
-  headers: { "User-Agent": "TheCryptoDeskBot/1.0 (+https://thecryptodesk.example.com)" },
+  headers: { "User-Agent": "TheCryptoDeskBot/1.0 (+https://thecryptodesk.com)" },
   customFields: {
     item: [
       ["media:content", "media:content"],

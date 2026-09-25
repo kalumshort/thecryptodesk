@@ -1,6 +1,6 @@
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import { FEEDS, MAX_ITEMS_PER_FEED } from "./feeds";
+import { SOURCE_FEEDS, MAX_ITEMS_PER_FEED, MIN_SOURCE_WORDS } from "./feeds";
 import { fetchFeed, type RawArticle } from "./rss";
 import { rewriteArticle, GEMINI_MODEL, type LinkCandidate } from "./rewrite";
 import { generateCoverImage } from "./generateImage";
@@ -77,7 +77,7 @@ export async function runIngest(): Promise<IngestResult> {
   // so later articles in this run can link back to earlier ones.
   const candidates = await fetchLinkCandidates(db);
 
-  for (const feed of FEEDS) {
+  for (const feed of SOURCE_FEEDS) {
     let items: RawArticle[] = [];
     try {
       items = await fetchFeed(feed);
@@ -92,6 +92,21 @@ export async function runIngest(): Promise<IngestResult> {
     for (const article of items) {
       if (processedForFeed >= MAX_ITEMS_PER_FEED) break;
       if (!article.title || !article.link) continue;
+
+      // Never write from a source too thin to write from. Below this floor
+      // the model would be inventing the article rather than reporting it,
+      // which is exactly what the old two-feed setup did every hour.
+      const sourceText = article.content || article.summary;
+      const sourceWords = sourceText.trim()
+        ? sourceText.trim().split(/\s+/).length
+        : 0;
+      if (sourceWords < MIN_SOURCE_WORDS) {
+        logger.info(
+          `Skipping thin item from ${feed.name} (${sourceWords} words): ${article.title}`,
+        );
+        result.skipped += 1;
+        continue;
+      }
 
       const seenRef = db.collection("seen").doc(article.guidHash);
       if ((await seenRef.get()).exists) {
@@ -154,6 +169,7 @@ export async function runIngest(): Promise<IngestResult> {
           metaDescription: rewritten.metaDescription,
           keywords: rewritten.keywords,
           aiModel: GEMINI_MODEL,
+          sourceWords,
         });
         // Complete the claim written above with the slug it produced.
         batch.set(
