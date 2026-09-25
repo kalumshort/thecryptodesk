@@ -100,6 +100,21 @@ export const SOURCE_FEEDS = FEEDS.filter((f) => !f.signalOnly);
  */
 export const MIN_SOURCE_WORDS = 150;
 
-// How many fresh items to process per feed, per run (caps AI cost).
-// Lower than before because there are now five source feeds rather than two.
+// Per-feed fairness cap, so one busy feed cannot crowd out the others.
 export const MAX_ITEMS_PER_FEED = 3;
+
+/**
+ * Hard ceiling on posts created per run, across all feeds.
+ *
+ * Five feeds at three items each is fifteen articles an hour — up to 360 a
+ * day, and the first run after the feed swap took over seven minutes against
+ * a 540s timeout. Both are wrong: the goal is a smaller number of stronger
+ * stories, and a run that nearly times out loses whatever it was mid-way
+ * through.
+ *
+ * Two an hour is a ~48/day ceiling, and in practice much less once `seen`
+ * dedup applies. This is a blunt volume cap standing in for the real fix —
+ * scoring each story for importance and novelty and publishing only what
+ * clears a threshold, which needs the clustering work first.
+ */
+export const MAX_POSTS_PER_RUN = 2;

@@ -1,6 +1,11 @@
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
-import { SOURCE_FEEDS, MAX_ITEMS_PER_FEED, MIN_SOURCE_WORDS } from "./feeds";
+import {
+  SOURCE_FEEDS,
+  MAX_ITEMS_PER_FEED,
+  MAX_POSTS_PER_RUN,
+  MIN_SOURCE_WORDS,
+} from "./feeds";
 import { fetchFeed, type RawArticle } from "./rss";
 import { rewriteArticle, GEMINI_MODEL, type LinkCandidate } from "./rewrite";
 import { generateCoverImage } from "./generateImage";
@@ -78,6 +83,12 @@ export async function runIngest(): Promise<IngestResult> {
   const candidates = await fetchLinkCandidates(db);
 
   for (const feed of SOURCE_FEEDS) {
+    if (result.created >= MAX_POSTS_PER_RUN) {
+      logger.info(
+        `Run cap reached (${MAX_POSTS_PER_RUN} posts); remaining feeds wait for the next run`,
+      );
+      break;
+    }
     let items: RawArticle[] = [];
     try {
       items = await fetchFeed(feed);
@@ -91,6 +102,7 @@ export async function runIngest(): Promise<IngestResult> {
     let processedForFeed = 0;
     for (const article of items) {
       if (processedForFeed >= MAX_ITEMS_PER_FEED) break;
+      if (result.created >= MAX_POSTS_PER_RUN) break;
       if (!article.title || !article.link) continue;
 
       // Never write from a source too thin to write from. Below this floor
