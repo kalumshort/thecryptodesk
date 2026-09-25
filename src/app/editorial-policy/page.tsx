@@ -27,10 +27,17 @@ produced differently:
 ## Where our news comes from
 
 We monitor the public RSS feeds of established crypto news organisations —
-currently **CoinDesk** and **Cointelegraph**. We do not conduct original
-reporting, break news, or cultivate our own sources. Every news article on this
-site is derived from someone else's journalism, and every article links back to
-the specific piece it was based on.
+currently **CoinJournal**, **CryptoSlate**, **BeInCrypto**, **CryptoPotato**
+and **Bitcoin Magazine**. We do not conduct original reporting, break news, or
+cultivate our own sources. Every news article on this site is derived from
+someone else's journalism, and every article links back to the specific piece
+it was based on.
+
+We write only from feeds that publish the full text of their articles. Some
+outlets — **CoinDesk** and **Cointelegraph** among them — publish only a
+headline and a one-line summary. We read those to judge what is worth
+covering, but we do not write from them: a one-line summary is not enough to
+report from, and filling the gap would mean inventing the rest.
 
 If you want the original reporting, follow the source link at the bottom of any
 article. We would rather send you there than have you rely on us alone.
