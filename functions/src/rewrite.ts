@@ -1,13 +1,9 @@
-import {
-  VertexAI,
-  SchemaType,
-  type ResponseSchema,
-} from "@google-cloud/vertexai";
+import { Type, type Schema } from "@google/genai";
+import { GEMINI_MODEL, generateJson } from "./genai";
 import { CATEGORIES } from "./feeds";
 import type { RawArticle } from "./rss";
 
-export const GEMINI_MODEL = "gemini-2.5-flash";
-const LOCATION = process.env.VERTEX_LOCATION ?? "us-central1";
+export { GEMINI_MODEL };
 
 export interface RewrittenPost {
   title: string;
@@ -28,18 +24,18 @@ export interface LinkCandidate {
   category: string;
 }
 
-const responseSchema: ResponseSchema = {
-  type: SchemaType.OBJECT,
+const responseSchema: Schema = {
+  type: Type.OBJECT,
   properties: {
-    title: { type: SchemaType.STRING },
-    excerpt: { type: SchemaType.STRING },
-    content: { type: SchemaType.STRING },
-    category: { type: SchemaType.STRING, enum: [...CATEGORIES] },
-    tags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-    metaTitle: { type: SchemaType.STRING },
-    metaDescription: { type: SchemaType.STRING },
-    keywords: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-    imagePrompt: { type: SchemaType.STRING },
+    title: { type: Type.STRING },
+    excerpt: { type: Type.STRING },
+    content: { type: Type.STRING },
+    category: { type: Type.STRING, enum: [...CATEGORIES] },
+    tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+    metaTitle: { type: Type.STRING },
+    metaDescription: { type: Type.STRING },
+    keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+    imagePrompt: { type: Type.STRING },
   },
   required: [
     "title",
@@ -53,21 +49,6 @@ const responseSchema: ResponseSchema = {
     "imagePrompt",
   ],
 };
-
-function getModel() {
-  const project =
-    process.env.GCLOUD_PROJECT ?? process.env.GOOGLE_CLOUD_PROJECT;
-  const vertex = new VertexAI({ project, location: LOCATION });
-  return vertex.getGenerativeModel({
-    model: GEMINI_MODEL,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 4096,
-      responseMimeType: "application/json",
-      responseSchema,
-    },
-  });
-}
 
 const SYSTEM_PROMPT = `You are a senior cryptocurrency news editor for "TheCryptoDesk".
 You will be given the raw text of a third-party crypto news article.
@@ -135,7 +116,6 @@ export async function rewriteArticle(
   article: RawArticle,
   candidates: LinkCandidate[] = [],
 ): Promise<RewrittenPost> {
-  const model = getModel();
   const userPrompt = `${SYSTEM_PROMPT}${buildLinkSection(candidates)}
 
 SOURCE ARTICLE
@@ -144,14 +124,11 @@ Source: ${article.feedName}
 Body:
 ${article.content || article.summary}`;
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+  // Retry, all-parts joining and guarded parsing live in generateJson.
+  const parsed = await generateJson<RewrittenPost>(userPrompt, responseSchema, {
+    temperature: 0.7,
+    maxOutputTokens: 8192,
   });
-
-  const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-  if (!text) throw new Error("Gemini returned an empty response");
-
-  const parsed = JSON.parse(text) as RewrittenPost;
 
   // Defensive: ensure category is valid.
   if (!(CATEGORIES as readonly string[]).includes(parsed.category)) {

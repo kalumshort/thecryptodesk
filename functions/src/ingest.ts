@@ -99,6 +99,18 @@ export async function runIngest(): Promise<IngestResult> {
         continue;
       }
 
+      // Claim the item BEFORE generating. Previously `seen` was written only
+      // inside the success batch, so an article that failed for a permanent
+      // reason (unparseable response, bad source text) was re-fetched and
+      // re-billed on every hourly run, forever. Claiming up front means a
+      // failure costs one attempt, not an unbounded number.
+      await seenRef.set({
+        sourceUrl: article.link,
+        feedName: article.feedName,
+        postSlug: null,
+        claimedAt: FieldValue.serverTimestamp(),
+      });
+
       try {
         const rewritten = await rewriteArticle(article, candidates);
         const base = slugify(rewritten.title || article.title);
@@ -143,12 +155,12 @@ export async function runIngest(): Promise<IngestResult> {
           keywords: rewritten.keywords,
           aiModel: GEMINI_MODEL,
         });
-        batch.set(seenRef, {
-          sourceUrl: article.link,
-          feedName: article.feedName,
-          postSlug: slug,
-          ingestedAt: now,
-        });
+        // Complete the claim written above with the slug it produced.
+        batch.set(
+          seenRef,
+          { postSlug: slug, ingestedAt: now },
+          { merge: true },
+        );
         // Maintain the date-archive index (count per month).
         batch.set(
           archiveRef,
@@ -175,6 +187,17 @@ export async function runIngest(): Promise<IngestResult> {
       } catch (err) {
         logger.error(`Failed to rewrite/store article from ${feed.name}`, err);
         result.errors += 1;
+        // Keep the claim so this item is not retried forever, but record why
+        // it failed so the ledger stays diagnosable.
+        await seenRef
+          .set(
+            {
+              failedAt: FieldValue.serverTimestamp(),
+              error: String((err as Error)?.message ?? err).slice(0, 500),
+            },
+            { merge: true },
+          )
+          .catch(() => undefined);
       }
     }
   }

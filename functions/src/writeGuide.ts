@@ -1,12 +1,8 @@
-import {
-  VertexAI,
-  SchemaType,
-  type ResponseSchema,
-} from "@google-cloud/vertexai";
+import { Type, type Schema } from "@google/genai";
+import { GEMINI_MODEL, generateJson } from "./genai";
 import type { GuideTopic } from "./guideTopics";
 
-export const GEMINI_MODEL = "gemini-2.5-flash";
-const LOCATION = process.env.VERTEX_LOCATION ?? "us-central1";
+export { GEMINI_MODEL };
 
 /** AI-written parts of a guide. Title/level/topic/order come from the topic. */
 export interface WrittenGuide {
@@ -19,16 +15,16 @@ export interface WrittenGuide {
   imagePrompt: string;
 }
 
-const responseSchema: ResponseSchema = {
-  type: SchemaType.OBJECT,
+const responseSchema: Schema = {
+  type: Type.OBJECT,
   properties: {
-    excerpt: { type: SchemaType.STRING },
-    content: { type: SchemaType.STRING },
-    tags: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-    metaTitle: { type: SchemaType.STRING },
-    metaDescription: { type: SchemaType.STRING },
-    keywords: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-    imagePrompt: { type: SchemaType.STRING },
+    excerpt: { type: Type.STRING },
+    content: { type: Type.STRING },
+    tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+    metaTitle: { type: Type.STRING },
+    metaDescription: { type: Type.STRING },
+    keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+    imagePrompt: { type: Type.STRING },
   },
   required: [
     "excerpt",
@@ -40,21 +36,6 @@ const responseSchema: ResponseSchema = {
     "imagePrompt",
   ],
 };
-
-function getModel() {
-  const project =
-    process.env.GCLOUD_PROJECT ?? process.env.GOOGLE_CLOUD_PROJECT;
-  const vertex = new VertexAI({ project, location: LOCATION });
-  return vertex.getGenerativeModel({
-    model: GEMINI_MODEL,
-    generationConfig: {
-      temperature: 0.6,
-      maxOutputTokens: 4096,
-      responseMimeType: "application/json",
-      responseSchema,
-    },
-  });
-}
 
 const SYSTEM_PROMPT = `You are an expert cryptocurrency educator writing for "TheCryptoDesk" Learn hub.
 You write clear, friendly tutorials for COMPLETE NEWCOMERS. Rules:
@@ -75,7 +56,6 @@ Return ONLY the JSON object matching the schema.`;
 
 /** Write an educational guide for one topic via Gemini. */
 export async function writeGuide(topic: GuideTopic): Promise<WrittenGuide> {
-  const model = getModel();
   const userPrompt = `${SYSTEM_PROMPT}
 
 GUIDE TO WRITE
@@ -83,13 +63,8 @@ Title (use exactly this as the subject; do not restate it as an H1): ${topic.tit
 Difficulty level: ${topic.level}
 What it should teach: ${topic.brief}`;
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+  return generateJson<WrittenGuide>(userPrompt, responseSchema, {
+    temperature: 0.6,
+    maxOutputTokens: 8192,
   });
-
-  const text =
-    result.response.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-  if (!text) throw new Error("Gemini returned an empty response");
-
-  return JSON.parse(text) as WrittenGuide;
 }
