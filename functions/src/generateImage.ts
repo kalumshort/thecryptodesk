@@ -1,39 +1,61 @@
 import { createHash, randomUUID } from "crypto";
 import { getStorage } from "firebase-admin/storage";
-import { GoogleAuth } from "google-auth-library";
+import { GoogleGenAI } from "@google/genai";
 import { logger } from "firebase-functions/v2";
 
 /**
- * Generates an original, branded cover image for a post with Google Imagen 4
- * Fast (Vertex AI) and stores it in Cloud Storage. Returns a public URL, or ""
- * on any failure so the caller can fall back to the placeholder without
- * aborting the post.
+ * Generates an original, branded cover image for a post and stores it in Cloud
+ * Storage. Returns a public URL, or "" on any failure so the caller can fall
+ * back to the placeholder without aborting the post.
  *
- * Auth is via Application Default Credentials — the Functions service account
- * already holds the "Vertex AI User" role used by the Gemini rewrite step, so
- * no extra API keys are needed. It must additionally be able to write to the
- * storage bucket (the Firebase Admin SDK service account has this by default).
+ * Previously this called Imagen 4 Fast over the REST `:predict` endpoint. That
+ * model no longer exists in this project's catalogue — it had been returning
+ * 404 on EVERY post for some time, silently, because failures return "" rather
+ * than throwing. That is why so many posts carry the placeholder cover.
+ *
+ * Auth is Application Default Credentials; the Functions service account
+ * already holds Vertex AI User for the text steps and can write to the bucket.
  */
 
-const LOCATION = process.env.VERTEX_LOCATION ?? "us-central1";
 const PROJECT =
   process.env.GCLOUD_PROJECT ?? process.env.GOOGLE_CLOUD_PROJECT ?? "";
-// Imagen 4 Fast: cheapest Google tier (~$0.02/image). Override via env if the
-// model id changes. See cloud.google.com/vertex-ai/generative-ai docs.
-const IMAGEN_MODEL = process.env.IMAGEN_MODEL ?? "imagen-4.0-fast-generate-001";
+
+/**
+ * Image models are served from `global`, not from a region — the regional
+ * endpoint 404s for every one of them, which is the same trap the text models
+ * are in.
+ *
+ * `gemini-3.1-flash-lite-image` measured against the alternatives: ~5s and a
+ * ~140KB JPEG, versus ~12s and a ~1.7MB PNG for the full flash-image model, at
+ * indistinguishable quality for a 16:9 editorial cover. On a page where cover
+ * images are the LCP element, the smaller file is the better image.
+ */
+const IMAGE_LOCATION = process.env.IMAGE_LOCATION ?? "global";
+const IMAGE_MODEL = process.env.IMAGE_MODEL ?? "gemini-3.1-flash-lite-image";
 // Dedicated bucket for post cover images, linked to Firebase Storage. Served
 // via Firebase download-token URLs (below) rather than public IAM, because the
 // org policy (iam.allowedPolicyMemberDomains) forbids public buckets. Override
 // with IMAGE_BUCKET if renamed.
 const BUCKET = process.env.IMAGE_BUCKET ?? `${PROJECT}-post-images`;
 
-const auth = new GoogleAuth({
-  scopes: "https://www.googleapis.com/auth/cloud-platform",
-});
+let client: GoogleGenAI | null = null;
 
-interface ImagenPrediction {
-  bytesBase64Encoded?: string;
-  mimeType?: string;
+function ai(): GoogleGenAI {
+  if (!client) {
+    client = new GoogleGenAI({
+      enterprise: true,
+      project: PROJECT,
+      location: IMAGE_LOCATION,
+    });
+  }
+  return client;
+}
+
+/** Map the model's reported mime type to a file extension. */
+function extensionFor(mime: string): string {
+  if (mime.includes("jpeg") || mime.includes("jpg")) return "jpg";
+  if (mime.includes("webp")) return "webp";
+  return "png";
 }
 
 // Curated art-direction pools. We vary the palette (biased by category),
@@ -130,54 +152,43 @@ export async function generateCoverImage(
   }
 
   try {
-    const client = await auth.getClient();
-    const accessToken = (await client.getAccessToken()).token;
-    if (!accessToken) throw new Error("Failed to obtain access token");
-
-    const url =
-      `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT}` +
-      `/locations/${LOCATION}/publishers/google/models/${IMAGEN_MODEL}:predict`;
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        instances: [{ prompt: buildPrompt(imagePrompt, title, slug, category) }],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: "16:9",
-          personGeneration: "allow_adult",
-        },
-      }),
+    const res = await ai().models.generateContent({
+      model: IMAGE_MODEL,
+      contents: buildPrompt(imagePrompt, title, slug, category),
+      config: { responseModalities: ["IMAGE"] },
     });
 
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(`Imagen predict ${res.status}: ${detail.slice(0, 500)}`);
+    const parts = res.candidates?.[0]?.content?.parts ?? [];
+    const inline = parts.find((p) => p.inlineData?.data)?.inlineData;
+    if (!inline?.data) {
+      const reason = res.candidates?.[0]?.finishReason ?? "unknown";
+      throw new Error(
+        `${IMAGE_MODEL} returned no image (finishReason: ${reason}, ` +
+          `parts: ${parts.length})`,
+      );
     }
 
-    const data = (await res.json()) as { predictions?: ImagenPrediction[] };
-    const b64 = data.predictions?.[0]?.bytesBase64Encoded;
-    if (!b64) throw new Error("Imagen returned no image bytes");
-
-    const buffer = Buffer.from(b64, "base64");
-    const objectPath = `posts/${slug}.png`;
+    const mime = inline.mimeType ?? "image/png";
+    const buffer = Buffer.from(inline.data, "base64");
+    const objectPath = `posts/${slug}.${extensionFor(mime)}`;
     const downloadToken = randomUUID();
+
     await getStorage()
       .bucket(BUCKET)
       .file(objectPath)
       .save(buffer, {
         resumable: false,
-        contentType: "image/png",
+        contentType: mime,
         metadata: {
           cacheControl: "public, max-age=31536000, immutable",
           // Firebase download token grants read access without public IAM.
           metadata: { firebaseStorageDownloadTokens: downloadToken },
         },
       });
+
+    logger.info(
+      `[image] generated ${slug} (${Math.round(buffer.length / 1024)}KB ${mime})`,
+    );
 
     return (
       `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/` +
