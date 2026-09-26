@@ -56,35 +56,35 @@ env:
   #     - BUILD
   #     - RUNTIME
 
-  # Envelope sender for contact-form notifications. MUST be an address on a
-  # domain verified in Resend -- an unverified sender is rejected outright.
-  # The submitter's own address is set as Reply-To, never as From, because
+  # Envelope sender for contact-form notifications. MUST be an address Resend
+  # will accept; the submitter rides in Reply-To, never in From, because
   # sending as them fails SPF/DKIM at the receiving end.
+  #
+  # TEMPORARY: thecryptodesk.com is NOT yet verified in Resend, and sending
+  # from an unverified domain is refused outright with a 403. `onboarding@
+  # resend.dev` is Resend's shared sender, which works with no DNS setup but
+  # will only deliver to the Resend account owner's own address -- hence the
+  # CONTACT_TO_EMAIL override below. Swap both back to the branded addresses
+  # once the domain is verified at https://resend.com/domains.
   - variable: MAIL_FROM
-    value: TheCryptoDesk <noreply@thecryptodesk.com>
+    value: TheCryptoDesk <onboarding@resend.dev>
     availability:
       - RUNTIME
 
-  # Contact form delivery. DELIBERATELY COMMENTED OUT: a `secret:` reference to
-  # a secret that does not yet exist in Secret Manager fails the whole deploy.
-  # Until this is enabled the form still works and still records every message
-  # to the `contactMessages` collection -- it just does not email anyone.
-  #
-  # To enable:
-  #   1. Verify thecryptodesk.com in Resend (adds DKIM + SPF DNS records).
-  #   2. firebase apphosting:secrets:set resend-api-key
-  #   3. firebase apphosting:secrets:grantaccess resend-api-key --backend <id>
-  #   4. Uncomment the three lines below and push.
-  #
-  # - variable: RESEND_API_KEY
-  #   secret: resend-api-key
-  #   availability:
-  #     - RUNTIME
-  #
-  # Optional: send the form somewhere other than the address published on the
-  # site (useful for pointing a staging backend at a test inbox).
-  #
-  # - variable: CONTACT_TO_EMAIL
-  #   value: contact@thecryptodesk.com
-  #   availability:
-  #     - RUNTIME
+  # TEMPORARY, paired with MAIL_FROM above: the shared sender cannot deliver to
+  # contact@thecryptodesk.com, and that mailbox needs an email host to exist at
+  # all -- Resend only sends, it does not receive. Remove this line once the
+  # domain is verified AND contact@ is a real mailbox, and the form will fall
+  # back to CONTACT_EMAIL, which is what the site publishes.
+  - variable: CONTACT_TO_EMAIL
+    value: kalum@11votes.com
+    availability:
+      - RUNTIME
+
+  # Contact form delivery. The secret itself lives in Secret Manager and is
+  # never in this file or the repo:
+  #   firebase apphosting:secrets:set resend-api-key
+  - variable: RESEND_API_KEY
+    secret: resend-api-key
+    availability:
+      - RUNTIME

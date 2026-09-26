@@ -21,7 +21,22 @@ import {
 const TO = process.env.CONTACT_TO_EMAIL ?? CONTACT_EMAIL;
 
 const RATE_WINDOW_MS = 60 * 60 * 1000;
-const RATE_MAX = 5;
+
+/** Per-person ceiling, applied only when the client can actually be told apart. */
+const RATE_MAX_PER_CLIENT = 5;
+
+/**
+ * Floodgate for when it cannot. Firebase App Hosting's edge does not forward
+ * the client address to the Cloud Run origin — request logs show the edge
+ * seeing the real browser while the origin sees a rotating Google egress IP
+ * and a user-agent of literally "Google" — so on this platform every
+ * submission currently shares one bucket.
+ *
+ * That makes the number load-bearing: at the per-client value of 5 the form
+ * goes down site-wide for an hour after the fifth message from anyone. This is
+ * deliberately high enough to be invisible to real use and still stop a script.
+ */
+const RATE_MAX_SHARED = 60;
 
 /** Pragmatic, not RFC 5322. The real validity test is whether a reply arrives. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -31,15 +46,15 @@ const SENT_MESSAGE =
   "within a couple of days.";
 
 /**
- * Per-IP throttle held in a single Firestore doc keyed by hashed IP.
+ * Throttle held in a single Firestore doc per bucket.
  *
  * A counter doc rather than a query over submissions: one transactional
- * get/set, no composite index, and nothing to backfill. Fails OPEN — a
- * Firestore blip should not take the only contact route offline, and the
- * downside of a missed throttle is some spam in a mailbox.
+ * get/set, no composite index, nothing to backfill. Fails OPEN — a Firestore
+ * blip should not take the only contact route offline, and the cost of a
+ * missed throttle is some spam in a mailbox.
  */
-async function withinRateLimit(ipHash: string): Promise<boolean> {
-  const ref = adminDb.collection("contactRate").doc(ipHash);
+async function withinRateLimit(bucket: string, max: number): Promise<boolean> {
+  const ref = adminDb.collection("contactRate").doc(bucket);
 
   try {
     return await adminDb.runTransaction(async (tx) => {
@@ -61,7 +76,7 @@ async function withinRateLimit(ipHash: string): Promise<boolean> {
         return true;
       }
 
-      if (count >= RATE_MAX) return false;
+      if (count >= max) return false;
 
       tx.set(ref, { count: count + 1 }, { merge: true });
       return true;
@@ -71,14 +86,53 @@ async function withinRateLimit(ipHash: string): Promise<boolean> {
   }
 }
 
-/** First hop in `x-forwarded-for` is the client as far as Cloud Run is concerned. */
-async function clientFingerprint(): Promise<{ ipHash: string; userAgent: string }> {
+/**
+ * Headers that may carry the real client address, best first.
+ *
+ * None of these survive Firebase App Hosting's edge today (see RATE_MAX_SHARED),
+ * so this normally yields null. The list is still worth having: the same code
+ * runs locally and behind proxies that do set them, and an edge that starts
+ * forwarding the client would silently upgrade the throttle rather than need
+ * a code change.
+ */
+const IP_HEADERS = [
+  "x-forwarded-for",
+  "x-real-ip",
+  "true-client-ip",
+  "x-client-ip",
+] as const;
+
+function resolveClientIp(h: Headers): string | null {
+  for (const name of IP_HEADERS) {
+    const first = h.get(name)?.split(",")[0]?.trim();
+    // Some proxies write the literal token "unknown" rather than omitting.
+    if (first && first.toLowerCase() !== "unknown") return first;
+  }
+
+  // RFC 7239, e.g. `Forwarded: for="[2001:db8::1]:443";proto=https`
+  return h.get("forwarded")?.match(/for="?\[?([^\];,"]+)/i)?.[1] ?? null;
+}
+
+async function clientFingerprint(): Promise<{
+  ipHash: string | null;
+  userAgent: string;
+}> {
   const h = await headers();
-  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "unknown";
+  const ip = resolveClientIp(h);
+
+  if (!ip) {
+    // Named header list only, never values — these carry cookies and tokens.
+    // This is the signal that tells us if the platform ever starts forwarding.
+    console.warn(
+      `[contact] no client IP header; falling back to the shared bucket. ` +
+        `headers seen: ${[...h.keys()].join(",")}`,
+    );
+  }
+
   return {
-    // Hashed, not stored raw: it exists to throttle and to correlate abuse,
-    // neither of which needs the address itself.
-    ipHash: createHash("sha256").update(ip).digest("hex").slice(0, 32),
+    // Hashed, never raw: it exists to tell submitters apart and to correlate
+    // abuse, and neither of those needs the address itself.
+    ipHash: ip ? createHash("sha256").update(ip).digest("hex").slice(0, 32) : null,
     userAgent: (h.get("user-agent") ?? "").slice(0, 300),
   };
 }
@@ -126,10 +180,18 @@ export async function submitContact(
 
   const { ipHash, userAgent } = await clientFingerprint();
 
-  if (!(await withinRateLimit(ipHash))) {
+  // A resolvable client gets its own allowance; everyone else shares one much
+  // larger bucket. Without the split an unidentifiable client would consume a
+  // 5/hour per-person limit on behalf of the entire site.
+  const bucket = ipHash ? `ip:${ipHash}` : "shared";
+  const limit = ipHash ? RATE_MAX_PER_CLIENT : RATE_MAX_SHARED;
+
+  if (!(await withinRateLimit(bucket, limit))) {
     return {
       status: "error",
-      message: `That is a few messages in a short time. Try again in an hour, or email ${TO} directly.`,
+      message: ipHash
+        ? `That is a few messages in a short time. Try again in an hour, or email ${TO} directly.`
+        : `The form is taking more messages than usual right now. Please email ${TO} directly.`,
       values,
     };
   }
@@ -142,6 +204,7 @@ export async function submitContact(
     const ref = await adminDb.collection("contactMessages").add({
       ...values,
       ipHash,
+      rateBucket: bucket,
       userAgent,
       createdAt: FieldValue.serverTimestamp(),
       delivered: false,
@@ -173,7 +236,7 @@ export async function submitContact(
       "─".repeat(58),
       "",
       `Reply directly to this email to answer ${values.name}.`,
-      `Stored as contactMessages/${docId} · client ${ipHash.slice(0, 12)}`,
+      `Stored as contactMessages/${docId} · client ${ipHash?.slice(0, 12) ?? "not forwarded by the edge"}`,
     ].join("\n"),
   });
 
