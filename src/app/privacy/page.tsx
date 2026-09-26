@@ -9,11 +9,12 @@ export const metadata: Metadata = {
   alternates: { canonical: absoluteUrl("/privacy") },
 };
 
-const UPDATED = "2026-09-23";
+const UPDATED = "2026-09-26";
 
 const CONTENT = `
 The short version: we have no accounts, no logins, no newsletter and no
-comments, so there is very little about you for us to hold.
+comments, so there is very little about you for us to hold. The one thing you
+can hand us is a message through the [contact form](/contact).
 
 ## What we collect
 
@@ -26,24 +27,36 @@ aggregate; we are not trying to identify you and have no way to do so.
 **Server logs.** Our host (Google Cloud) keeps standard request logs, including
 IP addresses, for operational and security purposes.
 
+**Contact form submissions.** If you write to us, we store what you sent — your
+name, email address, chosen topic and message — so that we have a record of it
+and can reply. We also store a one-way hash of your IP address, which is used
+only to rate-limit the form; the address itself is never written down. We keep
+submissions for as long as the matter is open and routinely delete old ones.
+We use your email address to answer you and for nothing else: no list, no
+marketing, and it is never passed on.
+
 That is the complete list. We do not run advertising, and there are no
 third-party ad or tracking pixels on this site.
 
 ## What we do not collect
 
-We do not ask for your name, email address or payment details, because there is
-nothing here to sign up for or buy. We do not sell data, because we do not have
-any worth selling. We do not build profiles of visitors.
+We never ask for payment details, because there is nothing here to buy, and we
+ask for your name and email address only if you choose to write to us — nothing
+on this site requires either in order to read it. We do not sell data, because
+we do not have any worth selling. We do not build profiles of visitors, and a
+message you send is not linked to your browsing.
 
 ## Third parties
 
-Three external services are involved in serving this site:
+Four external services are involved in serving this site:
 
 - **Google Analytics** — analytics, as described above.
 - **Google Cloud** — hosting, and therefore server logs.
 - **CoinGecko** — supplies the price data on [/market](/market) and the ticker.
   Price data is fetched by our servers, not your browser, so CoinGecko does not
   see your visit.
+- **Resend** — delivers contact-form submissions to our mailbox. A message you
+  send passes through them in transit.
 
 Coin icons on the market page are loaded directly from CoinGecko's asset host,
 which means your browser makes a request to them for those images.

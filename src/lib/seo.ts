@@ -6,10 +6,12 @@ export const SITE_NAME = "TheCryptoDesk";
 export const SITE_DESCRIPTION =
   "Fast, original cryptocurrency news — Bitcoin, Ethereum, DeFi, NFTs, regulation and markets.";
 
-// Published on /contact, /privacy, /terms and the editorial policy. Keep it
-// pointed at a mailbox that is actually monitored — a contact route that goes
-// nowhere is worse for trust than none at all.
-export const CONTACT_EMAIL = "kalum@11votes.com";
+// Published on /contact, /privacy, /terms and the editorial policy, and the
+// default destination for the contact form. Keep it pointed at a mailbox that
+// is actually monitored — a contact route that goes nowhere is worse for trust
+// than none at all. The form's destination can be repointed independently via
+// the CONTACT_TO_EMAIL env var without changing what the site displays.
+export const CONTACT_EMAIL = "contact@thecryptodesk.com";
 
 // Fail loudly at module load rather than silently shipping localhost canonicals
 // across the entire site — a misconfigured deploy would otherwise de-index us.
