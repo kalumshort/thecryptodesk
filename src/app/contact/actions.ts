@@ -26,15 +26,14 @@ const RATE_WINDOW_MS = 60 * 60 * 1000;
 const RATE_MAX_PER_CLIENT = 5;
 
 /**
- * Floodgate for when it cannot. Firebase App Hosting's edge does not forward
- * the client address to the Cloud Run origin — request logs show the edge
- * seeing the real browser while the origin sees a rotating Google egress IP
- * and a user-agent of literally "Google" — so on this platform every
- * submission currently shares one bucket.
+ * Floodgate for when it cannot. App Hosting does forward the client address in
+ * `x-forwarded-for`, verified against the edge request log, so this bucket is
+ * not normally reached — it is the safety net for a request that arrives with
+ * no usable address at all.
  *
- * That makes the number load-bearing: at the per-client value of 5 the form
- * goes down site-wide for an hour after the fifth message from anyone. This is
- * deliberately high enough to be invisible to real use and still stop a script.
+ * It has to be much larger than the per-client limit rather than equal to it:
+ * everyone who cannot be identified shares this one counter, so at a value of
+ * 5 a handful of such requests would take the form down site-wide for an hour.
  */
 const RATE_MAX_SHARED = 60;
 
@@ -89,11 +88,14 @@ async function withinRateLimit(bucket: string, max: number): Promise<boolean> {
 /**
  * Headers that may carry the real client address, best first.
  *
- * None of these survive Firebase App Hosting's edge today (see RATE_MAX_SHARED),
- * so this normally yields null. The list is still worth having: the same code
- * runs locally and behind proxies that do set them, and an edge that starts
- * forwarding the client would silently upgrade the throttle rather than need
- * a code change.
+ * `x-forwarded-for` is the one App Hosting actually sets, confirmed by hashing
+ * a stored submission back to the address the edge request log recorded for it.
+ * The rest are here because the same code runs locally and behind other
+ * proxies; they cost one map lookup each.
+ *
+ * Note the user-agent is NOT usable on this platform: the edge replaces it with
+ * the literal string "Google" before the origin sees it, so the value stored
+ * alongside a submission is for the record only and never for identification.
  */
 const IP_HEADERS = [
   "x-forwarded-for",
@@ -121,8 +123,8 @@ async function clientFingerprint(): Promise<{
   const ip = resolveClientIp(h);
 
   if (!ip) {
-    // Named header list only, never values — these carry cookies and tokens.
-    // This is the signal that tells us if the platform ever starts forwarding.
+    // Should not happen on App Hosting, so it is worth a log line if it does.
+    // Header names only, never values — those carry cookies and tokens.
     console.warn(
       `[contact] no client IP header; falling back to the shared bucket. ` +
         `headers seen: ${[...h.keys()].join(",")}`,

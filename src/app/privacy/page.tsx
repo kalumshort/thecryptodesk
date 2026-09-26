@@ -29,9 +29,8 @@ IP addresses, for operational and security purposes.
 
 **Contact form submissions.** If you write to us, we store what you sent — your
 name, email address, chosen topic and message — so that we have a record of it
-and can reply. Where our host passes your IP address through to us we store a
-one-way hash of it, used only to rate-limit the form; the address itself is
-never written down, and at present it usually does not reach us at all. We keep
+and can reply. We also store a one-way hash of your IP address, which is used
+only to rate-limit the form; the address itself is never written down. We keep
 submissions for as long as the matter is open and routinely delete old ones.
 We use your email address to answer you and for nothing else: no list, no
 marketing, and it is never passed on.
